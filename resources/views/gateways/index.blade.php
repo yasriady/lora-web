@@ -1,0 +1,5 @@
+@extends('layouts.app')
+@section('content')
+<h1 class="h3">Gateway</h1><form class="card card-body mb-4" method="POST" action="{{ route('gateways.store') }}">@csrf<div class="row g-2"><div class="col"><input class="form-control" name="gateway_id" placeholder="Gateway ID" required></div><div class="col"><input class="form-control" name="name" placeholder="Nama" required></div><div class="col"><input class="form-control" name="location" placeholder="Lokasi"></div><div class="col-auto"><button class="btn btn-primary">Tambah</button></div></div></form>
+<div class="table-responsive"><table class="table table-striped bg-white"><thead><tr><th>ID</th><th>Nama</th><th>Lokasi</th><th>Status</th><th>Last Seen</th></tr></thead><tbody>@forelse($gateways as $gateway)<tr><td>{{ $gateway->gateway_id }}</td><td>{{ $gateway->name }}</td><td>{{ $gateway->location }}</td><td>{{ $gateway->enabled?'Aktif':'Nonaktif' }}</td><td>{{ $gateway->last_seen ?? '—' }}</td></tr>@empty<tr><td colspan="5">Belum ada gateway.</td></tr>@endforelse</tbody></table></div>{{ $gateways->links() }}
+@endsection

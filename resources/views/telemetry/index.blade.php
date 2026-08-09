@@ -1,0 +1,4 @@
+@extends('layouts.app')
+@section('content')
+<h1 class="h3">Telemetry</h1><form class="mb-3"><input class="form-control" name="search" value="{{ request('search') }}" placeholder="Cari gateway atau node"></form><div class="table-responsive"><table class="table table-sm table-striped bg-white"><thead><tr><th>Waktu</th><th>Gateway</th><th>Node</th><th>Temp</th><th>Hum</th><th>Battery</th><th>RSSI</th><th>SNR</th></tr></thead><tbody>@forelse($telemetry as $item)<tr><td>{{ $item->timestamp }}</td><td>{{ $item->gateway_id }}</td><td>{{ $item->node_id }}</td><td>{{ $item->temperature }}</td><td>{{ $item->humidity }}</td><td>{{ $item->battery }}</td><td>{{ $item->rssi }}</td><td>{{ $item->snr }}</td></tr>@empty<tr><td colspan="8">Tidak ada data.</td></tr>@endforelse</tbody></table></div>{{ $telemetry->links() }}
+@endsection
