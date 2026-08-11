@@ -1,0 +1,8 @@
+# HTTP client untuk POST telemetry ke Laravel
+requests>=2.31.0
+
+# Radio (opsional via pip). Di Raspberry Pi disarankan pakai apt:
+#   sudo apt install python3-spidev python3-rpi.gpio
+# lalu buat venv dengan: python3 -m venv --system-site-packages .venv
+spidev>=3.6; platform_machine == "armv7l" or platform_machine == "aarch64" or platform_machine == "armv6l"
+RPi.GPIO>=0.7.1; platform_machine == "armv7l" or platform_machine == "aarch64" or platform_machine == "armv6l"

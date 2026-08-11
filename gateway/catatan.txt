@@ -1,0 +1,21 @@
+Di Raspberry Pi
+===============================
+cd /path/ke/gateway
+
+sudo apt update
+sudo apt install -y python3-venv python3-spidev python3-rpi.gpio
+
+./setup_venv.sh
+
+cp .env.example .env
+nano .env   # isi LORA_GATEWAY_ID dan LORA_API_TOKEN
+
+./run.sh
+
+
+Manual tanpa run.sh:
+===========================
+source .venv/bin/activate
+export LORA_API_TOKEN=...
+python gateway.py
+

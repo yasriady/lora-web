@@ -13,11 +13,12 @@ return new class extends Migration
             $table->string('gateway_id', 64);
             $table->string('node_id', 64);
             $table->timestamp('timestamp')->index();
-            $table->decimal('temperature', 6, 2);
-            $table->decimal('humidity', 5, 2);
-            $table->decimal('battery', 5, 3);
-            $table->smallInteger('rssi');
-            $table->decimal('snr', 5, 2);
+            $table->json('metrics')->nullable();
+            $table->decimal('temperature', 6, 2)->nullable();
+            $table->decimal('humidity', 5, 2)->nullable();
+            $table->decimal('battery', 5, 3)->nullable();
+            $table->smallInteger('rssi')->nullable();
+            $table->decimal('snr', 5, 2)->nullable();
             $table->timestamp('created_at')->useCurrent();
             $table->index(['gateway_id', 'node_id', 'timestamp']);
             $table->index(['node_id', 'timestamp']);

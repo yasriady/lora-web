@@ -1,0 +1,2 @@
+coba lihat file nodesensor/rfm95w_tx.ino, ini adalah contoh sketch yang saya gunakan pada nodemcu+Lora untuk mengirim sample.
+sekarang saya mau anda buatkan sketch rfm95w_tx_dht11.ino yang akan mengirim data sesuai dengan parameter yang ada pada apalikasi.

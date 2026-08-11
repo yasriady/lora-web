@@ -13,6 +13,8 @@ return new class extends Migration
             $table->string('gateway_id', 64)->index();
             $table->string('node_id', 64)->unique();
             $table->string('name', 120);
+            $table->string('node_type', 64)->default('env_basic')->index();
+            $table->json('metrics_schema')->nullable();
             $table->string('location')->nullable();
             $table->text('description')->nullable();
             $table->boolean('enabled')->default(true)->index();

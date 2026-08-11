@@ -4,16 +4,38 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Telemetry extends Model
 {
     public const UPDATED_AT = null;
+
     protected $table = 'telemetry';
-    protected $fillable = ['gateway_id', 'node_id', 'timestamp', 'temperature', 'humidity', 'battery', 'rssi', 'snr'];
+
+    protected $fillable = [
+        'gateway_id',
+        'node_id',
+        'timestamp',
+        'metrics',
+        'temperature',
+        'humidity',
+        'battery',
+        'rssi',
+        'snr',
+    ];
 
     protected function casts(): array
     {
-        return ['timestamp' => 'datetime', 'created_at' => 'datetime', 'temperature' => 'decimal:2', 'humidity' => 'decimal:2', 'battery' => 'decimal:3', 'snr' => 'decimal:2', 'rssi' => 'integer'];
+        return [
+            'timestamp' => 'datetime',
+            'created_at' => 'datetime',
+            'metrics' => 'array',
+            'temperature' => 'decimal:2',
+            'humidity' => 'decimal:2',
+            'battery' => 'decimal:3',
+            'snr' => 'decimal:2',
+            'rssi' => 'integer',
+        ];
     }
 
     public function gateway(): BelongsTo
@@ -24,5 +46,30 @@ class Telemetry extends Model
     public function node(): BelongsTo
     {
         return $this->belongsTo(Node::class, 'node_id', 'node_id');
+    }
+
+    public function readings(): HasMany
+    {
+        return $this->hasMany(TelemetryReading::class);
+    }
+
+    /**
+     * @return array<string, float|int|string>
+     */
+    public function displayMetrics(): array
+    {
+        if (is_array($this->metrics) && $this->metrics !== []) {
+            return $this->metrics;
+        }
+
+        $legacy = [];
+        if ($this->temperature !== null) {
+            $legacy['temperature'] = $this->temperature;
+        }
+        if ($this->humidity !== null) {
+            $legacy['humidity'] = $this->humidity;
+        }
+
+        return $legacy;
     }
 }

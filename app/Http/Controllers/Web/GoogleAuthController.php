@@ -35,7 +35,7 @@ class GoogleAuthController extends Controller
 
             return redirect()
                 ->route('login')
-                ->with('error', 'Login Google gagal. Silakan coba lagi.');
+                ->with('error', __('ui.auth.google_failed'));
         }
 
         $email = Str::lower((string) $googleUser->getEmail());
@@ -43,7 +43,7 @@ class GoogleAuthController extends Controller
         if ($email === '' || ! $this->isAllowedEmail($email)) {
             return redirect()
                 ->route('login')
-                ->with('error', 'Akun Google ini tidak diizinkan mengakses dashboard.');
+                ->with('error', __('ui.auth.not_allowed'));
         }
 
         $user = User::query()->updateOrCreate(
