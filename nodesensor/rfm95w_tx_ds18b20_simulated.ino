@@ -29,7 +29,7 @@
 #include <DallasTemperature.h>
 
 // —— identitas node ——
-#define NODE_ID "NODE01"
+#define NODE_ID "NODE04"
 
 // —— pin LoRa ——
 #define LORA_SCK   D5

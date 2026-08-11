@@ -32,7 +32,7 @@
 #include <DallasTemperature.h>
 
 // —— identitas node (harus sama dengan yang didaftarkan di aplikasi) ——
-#define NODE_ID "NODE01"
+#define NODE_ID "NODE04"
 
 // —— pin LoRa (sama seperti rfm95w_tx.ino) ——
 #define LORA_SCK   D5
