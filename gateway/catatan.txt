@@ -10,7 +10,16 @@ sudo apt install -y python3-venv python3-spidev python3-rpi.gpio
 cp .env.example .env
 nano .env   # isi LORA_GATEWAY_ID dan LORA_API_TOKEN
 
+# Manual (foreground):
 ./run.sh
+
+# Atau sebagai systemd service (auto-start saat boot):
+sudo ./install_service.sh
+sudo systemctl status lora-gateway
+sudo journalctl -u lora-gateway -f
+
+# Hapus service:
+# sudo ./uninstall_service.sh
 
 
 Manual tanpa run.sh:
