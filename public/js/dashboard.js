@@ -2,15 +2,23 @@
     const sidebar = document.getElementById('appSidebar');
     const backdrop = document.getElementById('sidebarBackdrop');
     const toggle = document.getElementById('sidebarToggle');
+    const body = document.body;
 
     const closeSidebar = () => {
         sidebar?.classList.remove('open');
         backdrop?.classList.remove('show');
+        body.classList.remove('sidebar-open');
     };
 
     toggle?.addEventListener('click', () => {
-        sidebar?.classList.toggle('open');
-        backdrop?.classList.toggle('show');
+        if (window.matchMedia('(max-width: 767px)').matches) {
+            sidebar?.classList.toggle('open');
+            backdrop?.classList.toggle('show');
+            body.classList.toggle('sidebar-open', sidebar?.classList.contains('open'));
+            return;
+        }
+
+        body.classList.toggle('sidebar-collapse');
     });
 
     backdrop?.addEventListener('click', closeSidebar);

@@ -19,42 +19,54 @@
 </div>
 
 <div class="kpi-grid">
-    <div class="kpi">
-        <div class="kpi-label">{{ __('ui.dashboard.gateway') }}</div>
-        <div class="kpi-value">{{ number_format($gatewayCount) }}</div>
-        <div class="kpi-meta">{{ __('ui.dashboard.gateway_meta') }}</div>
+    <div class="kpi bg-aqua">
+        <div class="kpi-inner">
+            <div class="kpi-value">{{ number_format($gatewayCount) }}</div>
+            <div class="kpi-label">{{ __('ui.dashboard.gateway') }}</div>
+            <div class="kpi-meta">{{ __('ui.dashboard.gateway_meta') }}</div>
+        </div>
     </div>
-    <div class="kpi">
-        <div class="kpi-label">{{ __('ui.dashboard.node') }}</div>
-        <div class="kpi-value">{{ number_format($nodeCount) }}</div>
-        <div class="kpi-meta">{{ __('ui.dashboard.node_meta') }}</div>
+    <div class="kpi bg-green">
+        <div class="kpi-inner">
+            <div class="kpi-value">{{ number_format($nodeCount) }}</div>
+            <div class="kpi-label">{{ __('ui.dashboard.node') }}</div>
+            <div class="kpi-meta">{{ __('ui.dashboard.node_meta') }}</div>
+        </div>
     </div>
-    <div class="kpi">
-        <div class="kpi-label">{{ __('ui.dashboard.node_online') }}</div>
-        <div class="kpi-value" style="color: var(--success);">{{ number_format($onlineNodeCount) }}</div>
-        <div class="kpi-meta">{{ __('ui.dashboard.node_online_meta') }}</div>
+    <div class="kpi bg-yellow">
+        <div class="kpi-inner">
+            <div class="kpi-value">{{ number_format($onlineNodeCount) }}</div>
+            <div class="kpi-label">{{ __('ui.dashboard.node_online') }}</div>
+            <div class="kpi-meta">{{ __('ui.dashboard.node_online_meta') }}</div>
+        </div>
     </div>
-    <div class="kpi warning">
-        <div class="kpi-label">{{ __('ui.dashboard.node_offline') }}</div>
-        <div class="kpi-value" style="color: var(--amber);">{{ number_format($offlineNodeCount) }}</div>
-        <div class="kpi-meta">{{ __('ui.dashboard.node_offline_meta') }}</div>
+    <div class="kpi bg-red">
+        <div class="kpi-inner">
+            <div class="kpi-value">{{ number_format($offlineNodeCount) }}</div>
+            <div class="kpi-label">{{ __('ui.dashboard.node_offline') }}</div>
+            <div class="kpi-meta">{{ __('ui.dashboard.node_offline_meta') }}</div>
+        </div>
     </div>
 </div>
 
 <div class="kpi-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-    <div class="kpi">
-        <div class="kpi-label">{{ __('ui.dashboard.packets_today') }}</div>
-        <div class="kpi-value">{{ number_format($todayPacketCount) }}</div>
-        <div class="kpi-meta">{{ __('ui.dashboard.packets_today_meta') }}</div>
+    <div class="kpi bg-aqua">
+        <div class="kpi-inner">
+            <div class="kpi-value">{{ number_format($todayPacketCount) }}</div>
+            <div class="kpi-label">{{ __('ui.dashboard.packets_today') }}</div>
+            <div class="kpi-meta">{{ __('ui.dashboard.packets_today_meta') }}</div>
+        </div>
     </div>
-    <div class="kpi">
-        <div class="kpi-label">{{ __('ui.dashboard.packets_total') }}</div>
-        <div class="kpi-value">{{ number_format($packetCount) }}</div>
-        <div class="kpi-meta">{{ __('ui.dashboard.packets_total_meta') }}</div>
+    <div class="kpi bg-green">
+        <div class="kpi-inner">
+            <div class="kpi-value">{{ number_format($packetCount) }}</div>
+            <div class="kpi-label">{{ __('ui.dashboard.packets_total') }}</div>
+            <div class="kpi-meta">{{ __('ui.dashboard.packets_total_meta') }}</div>
+        </div>
     </div>
 </div>
 
-<div class="split-grid mt-1">
+<div class="split-grid">
     <section class="panel">
         <div class="panel-header">
             <h2 class="panel-title">{{ __('ui.dashboard.recent_telemetry') }}</h2>
@@ -76,7 +88,7 @@
                             <td class="mono">{{ $item->timestamp?->diffForHumans() }}</td>
                             <td>
                                 <div class="mono">{{ $item->node_id }}</div>
-                                <div class="muted" style="font-size:0.75rem;">{{ $item->gateway_id }}</div>
+                                <div class="muted" style="font-size:12px;">{{ $item->gateway_id }}</div>
                             </td>
                             <td>
                                 <div class="d-flex flex-wrap gap-1">
@@ -119,8 +131,8 @@
                         <tr>
                             <td>
                                 <div class="mono">{{ $log->event }}</div>
-                                <div class="muted" style="font-size:0.78rem;">{{ \Illuminate\Support\Str::limit($log->message, 70) }}</div>
-                                <div class="muted" style="font-size:0.72rem;">{{ $log->created_at?->diffForHumans() }}</div>
+                                <div class="muted" style="font-size:12px;">{{ \Illuminate\Support\Str::limit($log->message, 70) }}</div>
+                                <div class="muted" style="font-size:11px;">{{ $log->created_at?->diffForHumans() }}</div>
                             </td>
                             <td>
                                 @php

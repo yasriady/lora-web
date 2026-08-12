@@ -7,6 +7,9 @@
 
 @section('content')
 <section class="panel">
+    <div class="panel-header">
+        <h2 class="panel-title">@yield('heading')</h2>
+    </div>
     <div class="empty-state">
         <div class="brand-mark" style="margin:0 auto;">L</div>
         <h3>{{ __('ui.placeholder.title') }}</h3>
