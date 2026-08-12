@@ -65,10 +65,11 @@ import signal
 import sys
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from types import FrameType
 from typing import Any, Optional
+from zoneinfo import ZoneInfo
 
 # Allow `python3 /path/to/gateway.py` from any working directory.
 _GATEWAY_DIR = Path(__file__).resolve().parent
@@ -1058,8 +1059,10 @@ class Gateway:
         return parsed
 
     @staticmethod
-    def _utc_now_iso() -> str:
-        return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    def _app_now_iso() -> str:
+        """Current time in Asia/Jakarta (matches Laravel APP_TIMEZONE / Grafana)."""
+        tz_name = os.getenv("LORA_TIMEZONE", "Asia/Jakarta")
+        return datetime.now(ZoneInfo(tz_name)).isoformat()
 
     @staticmethod
     def _as_float(value: Any) -> Optional[float]:
@@ -1124,7 +1127,7 @@ class Gateway:
         api_packet: dict[str, Any] = {
             "gateway_id": self.delivery.gateway_id,
             "node_id": node_id,
-            "timestamp": self._utc_now_iso(),
+            "timestamp": self._app_now_iso(),
             "rssi": int(round(packet.rssi_dbm)),
             "snr": round(float(packet.snr_db), 2),
             "metrics": metrics,

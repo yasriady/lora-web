@@ -11,8 +11,9 @@ import logging
 import os
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 _GATEWAY_DIR = Path(__file__).resolve().parent
 _ENV_PATH = _GATEWAY_DIR / ".env"
@@ -94,9 +95,7 @@ def sample_packet(gateway_id: str, node_id: str) -> dict:
     return {
         "gateway_id": gateway_id,
         "node_id": node_id,
-        "timestamp": datetime.now(timezone.utc)
-        .isoformat()
-        .replace("+00:00", "Z"),
+        "timestamp": datetime.now(ZoneInfo(os.getenv("LORA_TIMEZONE", "Asia/Jakarta"))).isoformat(),
         "battery": 3.92,
         "rssi": -82,
         "snr": 8.5,
