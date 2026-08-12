@@ -9,7 +9,30 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ asset('css/dashboard.css') }}?v=6" rel="stylesheet">
+    <link href="{{ asset('css/skin-blue.css') }}?v={{ filemtime(public_path('css/skin-blue.css')) }}" rel="stylesheet">
+    <style>
+        /* Critical shell so layout stays intact if a stale CSS cache is served */
+        .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+        body.app-body{margin:0;background:#ecf0f5;font-family:"Source Sans Pro","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;color:#444}
+        .main-header{position:relative;height:50px;z-index:1030;background:#3c8dbc}
+        .main-header .logo{display:block;float:left;width:230px;height:50px;line-height:50px;text-align:center;background:#367fa9;color:#fff!important;font-size:20px;text-decoration:none}
+        .main-header .navbar{display:flex;align-items:center;height:50px;margin-left:230px;width:calc(100% - 230px);background:#3c8dbc;padding:0 10px 0 0}
+        button.sidebar-toggle{appearance:none;background:transparent;border:0;color:#fff;height:50px;padding:15px;display:inline-flex;flex-direction:column;justify-content:center;gap:4px;cursor:pointer}
+        .sidebar-toggle .icon-bar{display:block;width:22px;height:2px;background:#fff}
+        .main-sidebar{position:fixed;top:0;left:0;bottom:0;width:230px;padding-top:50px;background:#222d32;z-index:810;overflow-y:auto}
+        .sidebar-menu{list-style:none;margin:0;padding:0}
+        .sidebar-menu a{color:#b8c7ce;display:flex;align-items:center;gap:10px;padding:12px 15px;text-decoration:none}
+        .content-wrapper,.main-footer{margin-left:230px}
+        .navbar-custom-menu{display:flex;align-items:center;gap:10px;margin-left:auto;color:#fff}
+        @media(max-width:767px){
+            .main-header .logo{width:100%;float:none}
+            .main-header{height:auto}
+            .main-header .navbar{margin-left:0;width:100%}
+            .main-sidebar{transform:translateX(-110%)}
+            .main-sidebar.open{transform:translateX(0)}
+            .content-wrapper,.main-footer{margin-left:0}
+        }
+    </style>
 </head>
 <body class="app-body skin-blue sidebar-mini">
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
@@ -21,7 +44,6 @@
         </a>
         <nav class="navbar navbar-static-top">
             <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="{{ __('ui.menu') }}">
-                <span class="sr-only">{{ __('ui.menu') }}</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
@@ -53,7 +75,7 @@
     </header>
 
     <aside class="main-sidebar" id="appSidebar">
-        <section class="sidebar">
+        <section class="sidebar-inner">
             @auth
                 <div class="user-panel">
                     <div class="pull-left image">
@@ -179,7 +201,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('js/dashboard.js') }}?v=6"></script>
+<script src="{{ asset('js/dashboard.js') }}?v={{ filemtime(public_path('js/dashboard.js')) }}"></script>
 @stack('scripts')
 </body>
 </html>
