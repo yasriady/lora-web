@@ -77,6 +77,8 @@ return [
         'time' => 'Time',
         'temp' => 'Temp',
         'hum' => 'Hum',
+        'live' => 'Live',
+        'updating' => 'Updating',
         'event' => 'Event',
         'level' => 'Level',
     ],

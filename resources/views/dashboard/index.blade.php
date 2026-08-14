@@ -6,9 +6,15 @@
 @section('subtitle', __('ui.dashboard.subtitle'))
 
 @section('content')
-<div class="status-strip">
-    <span class="status-dot"></span>
-    <strong>
+<div
+    id="dashboardLive"
+    data-kpis-url="{{ route('dashboard.widgets.kpis') }}"
+    data-telemetry-url="{{ route('dashboard.widgets.telemetry') }}"
+    data-logs-url="{{ route('dashboard.widgets.logs') }}"
+>
+<div class="status-strip" data-widget="kpis">
+    <span class="status-dot is-live" title="{{ __('ui.dashboard.live') }}"></span>
+    <strong data-bind="statusText">
         {{ __('ui.dashboard.status_online', [
             'online' => number_format($onlineNodeCount),
             'offline' => number_format($offlineNodeCount),
@@ -16,50 +22,51 @@
         ]) }}
     </strong>
     <span class="muted">{{ __('ui.dashboard.threshold_note') }}</span>
+    <span class="live-badge">{{ __('ui.dashboard.live') }}</span>
 </div>
 
-<div class="kpi-grid">
+<div class="kpi-grid" data-widget="kpis">
     <div class="kpi bg-aqua">
         <div class="kpi-inner">
-            <div class="kpi-value">{{ number_format($gatewayCount) }}</div>
+            <div class="kpi-value" data-bind="gatewayCount">{{ number_format($gatewayCount) }}</div>
             <div class="kpi-label">{{ __('ui.dashboard.gateway') }}</div>
             <div class="kpi-meta">{{ __('ui.dashboard.gateway_meta') }}</div>
         </div>
     </div>
     <div class="kpi bg-green">
         <div class="kpi-inner">
-            <div class="kpi-value">{{ number_format($nodeCount) }}</div>
+            <div class="kpi-value" data-bind="nodeCount">{{ number_format($nodeCount) }}</div>
             <div class="kpi-label">{{ __('ui.dashboard.node') }}</div>
             <div class="kpi-meta">{{ __('ui.dashboard.node_meta') }}</div>
         </div>
     </div>
     <div class="kpi bg-yellow">
         <div class="kpi-inner">
-            <div class="kpi-value">{{ number_format($onlineNodeCount) }}</div>
+            <div class="kpi-value" data-bind="onlineNodeCount">{{ number_format($onlineNodeCount) }}</div>
             <div class="kpi-label">{{ __('ui.dashboard.node_online') }}</div>
             <div class="kpi-meta">{{ __('ui.dashboard.node_online_meta') }}</div>
         </div>
     </div>
     <div class="kpi bg-red">
         <div class="kpi-inner">
-            <div class="kpi-value">{{ number_format($offlineNodeCount) }}</div>
+            <div class="kpi-value" data-bind="offlineNodeCount">{{ number_format($offlineNodeCount) }}</div>
             <div class="kpi-label">{{ __('ui.dashboard.node_offline') }}</div>
             <div class="kpi-meta">{{ __('ui.dashboard.node_offline_meta') }}</div>
         </div>
     </div>
 </div>
 
-<div class="kpi-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+<div class="kpi-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));" data-widget="kpis">
     <div class="kpi bg-aqua">
         <div class="kpi-inner">
-            <div class="kpi-value">{{ number_format($todayPacketCount) }}</div>
+            <div class="kpi-value" data-bind="todayPacketCount">{{ number_format($todayPacketCount) }}</div>
             <div class="kpi-label">{{ __('ui.dashboard.packets_today') }}</div>
             <div class="kpi-meta">{{ __('ui.dashboard.packets_today_meta') }}</div>
         </div>
     </div>
     <div class="kpi bg-green">
         <div class="kpi-inner">
-            <div class="kpi-value">{{ number_format($packetCount) }}</div>
+            <div class="kpi-value" data-bind="packetCount">{{ number_format($packetCount) }}</div>
             <div class="kpi-label">{{ __('ui.dashboard.packets_total') }}</div>
             <div class="kpi-meta">{{ __('ui.dashboard.packets_total_meta') }}</div>
         </div>
@@ -67,7 +74,7 @@
 </div>
 
 <div class="split-grid">
-    <section class="panel">
+    <section class="panel" data-widget="telemetry">
         <div class="panel-header">
             <h2 class="panel-title">{{ __('ui.dashboard.recent_telemetry') }}</h2>
             <a href="{{ route('telemetry.index') }}" class="btn btn-sm btn-soft">{{ __('ui.dashboard.view_all') }}</a>
@@ -82,7 +89,7 @@
                         <th>RSSI</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody data-bind-rows="telemetry">
                     @forelse ($recentTelemetry as $item)
                         <tr>
                             <td class="mono">{{ $item->timestamp?->diffForHumans() }}</td>
@@ -113,7 +120,7 @@
         </div>
     </section>
 
-    <section class="panel">
+    <section class="panel" data-widget="logs">
         <div class="panel-header">
             <h2 class="panel-title">{{ __('ui.dashboard.recent_logs') }}</h2>
             <a href="{{ route('logs.index') }}" class="btn btn-sm btn-soft">{{ __('ui.dashboard.view_all') }}</a>
@@ -126,7 +133,7 @@
                         <th>{{ __('ui.dashboard.level') }}</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody data-bind-rows="logs">
                     @forelse ($recentLogs as $log)
                         <tr>
                             <td>
@@ -158,5 +165,6 @@
             </table>
         </div>
     </section>
+</div>
 </div>
 @endsection

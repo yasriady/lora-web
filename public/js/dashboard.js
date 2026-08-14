@@ -202,4 +202,211 @@
         modal.addEventListener('shown.bs.modal', () => syncNodeTypeFields(modal));
         modal.querySelector('.js-node-type')?.addEventListener('change', () => syncNodeTypeFields(modal));
     });
+
+    const dashboardRoot = document.getElementById('dashboardLive');
+    if (dashboardRoot) {
+        const formatCount = (value) => Number(value || 0).toLocaleString();
+
+        const setUpdating = (widget, on) => {
+            dashboardRoot.querySelectorAll(`[data-widget="${widget}"]`).forEach((node) => {
+                node.classList.toggle('is-updating', on);
+            });
+        };
+
+        const applyKpis = (data) => {
+            const map = {
+                statusText: data.statusText,
+                gatewayCount: formatCount(data.gatewayCount),
+                nodeCount: formatCount(data.nodeCount),
+                onlineNodeCount: formatCount(data.onlineNodeCount),
+                offlineNodeCount: formatCount(data.offlineNodeCount),
+                todayPacketCount: formatCount(data.todayPacketCount),
+                packetCount: formatCount(data.packetCount),
+            };
+
+            Object.entries(map).forEach(([key, value]) => {
+                dashboardRoot.querySelectorAll(`[data-bind="${key}"]`).forEach((node) => {
+                    if (node.textContent !== String(value)) {
+                        node.textContent = value;
+                    }
+                });
+            });
+        };
+
+        const emptyRow = (colspan, text) => {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = colspan;
+            const wrap = document.createElement('div');
+            wrap.className = 'empty-state';
+            const muted = document.createElement('div');
+            muted.className = 'muted';
+            muted.textContent = text;
+            wrap.appendChild(muted);
+            td.appendChild(wrap);
+            tr.appendChild(td);
+            return tr;
+        };
+
+        const applyTelemetry = (data) => {
+            const tbody = dashboardRoot.querySelector('[data-bind-rows="telemetry"]');
+            if (!tbody) {
+                return;
+            }
+
+            tbody.replaceChildren();
+            if (data.empty || !Array.isArray(data.rows) || data.rows.length === 0) {
+                tbody.appendChild(emptyRow(4, data.emptyText || ''));
+                return;
+            }
+
+            data.rows.forEach((row) => {
+                const tr = document.createElement('tr');
+
+                const time = document.createElement('td');
+                time.className = 'mono';
+                time.textContent = row.time || '—';
+                tr.appendChild(time);
+
+                const node = document.createElement('td');
+                const nodeId = document.createElement('div');
+                nodeId.className = 'mono';
+                nodeId.textContent = row.node_id || '';
+                const gatewayId = document.createElement('div');
+                gatewayId.className = 'muted';
+                gatewayId.style.fontSize = '12px';
+                gatewayId.textContent = row.gateway_id || '';
+                node.append(nodeId, gatewayId);
+                tr.appendChild(node);
+
+                const metrics = document.createElement('td');
+                const wrap = document.createElement('div');
+                wrap.className = 'd-flex flex-wrap gap-1';
+                (row.metrics || []).forEach((metric) => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge-pill badge-info mono';
+                    badge.textContent = `${metric.key}: ${metric.value}`;
+                    wrap.appendChild(badge);
+                });
+                metrics.appendChild(wrap);
+                tr.appendChild(metrics);
+
+                const rssi = document.createElement('td');
+                rssi.className = 'mono';
+                rssi.textContent = row.rssi || '—';
+                tr.appendChild(rssi);
+
+                tbody.appendChild(tr);
+            });
+        };
+
+        const applyLogs = (data) => {
+            const tbody = dashboardRoot.querySelector('[data-bind-rows="logs"]');
+            if (!tbody) {
+                return;
+            }
+
+            tbody.replaceChildren();
+            if (data.empty || !Array.isArray(data.rows) || data.rows.length === 0) {
+                tbody.appendChild(emptyRow(2, data.emptyText || ''));
+                return;
+            }
+
+            data.rows.forEach((row) => {
+                const tr = document.createElement('tr');
+
+                const event = document.createElement('td');
+                const title = document.createElement('div');
+                title.className = 'mono';
+                title.textContent = row.event || '';
+                const message = document.createElement('div');
+                message.className = 'muted';
+                message.style.fontSize = '12px';
+                message.textContent = row.message || '';
+                const time = document.createElement('div');
+                time.className = 'muted';
+                time.style.fontSize = '11px';
+                time.textContent = row.time || '';
+                event.append(title, message, time);
+                tr.appendChild(event);
+
+                const level = document.createElement('td');
+                const badge = document.createElement('span');
+                badge.className = `badge-pill ${row.levelClass || 'badge-info'}`;
+                badge.textContent = row.level || '';
+                level.appendChild(badge);
+                tr.appendChild(level);
+
+                tbody.appendChild(tr);
+            });
+        };
+
+        const pollers = [
+            {
+                key: 'kpis',
+                url: dashboardRoot.getAttribute('data-kpis-url'),
+                interval: 15000,
+                apply: applyKpis,
+            },
+            {
+                key: 'telemetry',
+                url: dashboardRoot.getAttribute('data-telemetry-url'),
+                interval: 7000,
+                apply: applyTelemetry,
+            },
+            {
+                key: 'logs',
+                url: dashboardRoot.getAttribute('data-logs-url'),
+                interval: 12000,
+                apply: applyLogs,
+            },
+        ];
+
+        const timers = [];
+        let stopped = false;
+
+        const poll = async (widget) => {
+            if (stopped || document.hidden || !widget.url || widget.inflight) {
+                return;
+            }
+
+            widget.inflight = true;
+            setUpdating(widget.key, true);
+
+            try {
+                const response = await fetch(widget.url, {
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                });
+
+                if (response.status === 401 || response.status === 419) {
+                    stopped = true;
+                    timers.forEach((id) => clearInterval(id));
+                    return;
+                }
+
+                if (!response.ok) {
+                    return;
+                }
+
+                widget.apply(await response.json());
+            } catch (error) {
+                console.error(`Gagal refresh widget ${widget.key}`, error);
+            } finally {
+                widget.inflight = false;
+                setUpdating(widget.key, false);
+            }
+        };
+
+        pollers.forEach((widget) => {
+            const timer = setInterval(() => poll(widget), widget.interval);
+            timers.push(timer);
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && !stopped) {
+                pollers.forEach((widget) => poll(widget));
+            }
+        });
+    }
 })();

@@ -520,6 +520,35 @@ ul.sidebar-menu,
     display: inline-block;
 }
 
+.status-dot.is-live {
+    box-shadow: 0 0 0 0 rgba(0, 166, 90, 0.55);
+    animation: live-pulse 1.8s ease-out infinite;
+}
+
+.live-badge {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #00a65a;
+    background: #dff0d8;
+    border: 1px solid #d6e9c6;
+    border-radius: 2px;
+    padding: 2px 7px;
+}
+
+[data-widget].is-updating {
+    outline: 1px solid rgba(60, 141, 188, 0.35);
+    outline-offset: -1px;
+}
+
+@keyframes live-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(0, 166, 90, 0.55); }
+    70% { box-shadow: 0 0 0 8px rgba(0, 166, 90, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 166, 90, 0); }
+}
+
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
