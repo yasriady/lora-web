@@ -17,6 +17,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard/widgets/kpis', [DashboardController::class, 'widgetKpis'])->name('dashboard.widgets.kpis');
     Route::get('/dashboard/widgets/telemetry', [DashboardController::class, 'widgetTelemetry'])->name('dashboard.widgets.telemetry');
     Route::get('/dashboard/widgets/logs', [DashboardController::class, 'widgetLogs'])->name('dashboard.widgets.logs');
+    Route::get('/dashboard/widgets/chart', [DashboardController::class, 'widgetChart'])->name('dashboard.widgets.chart');
 
     Route::get('/gateways', [GatewayController::class, 'index'])->name('gateways.index');
     Route::post('/gateways', [GatewayController::class, 'store'])->name('gateways.store');

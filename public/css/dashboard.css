@@ -837,6 +837,74 @@ ul.sidebar-menu,
     gap: 15px;
 }
 
+.chart-panel { margin-bottom: 15px; }
+
+.chart-panel-header {
+    align-items: flex-start;
+}
+
+.chart-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.chart-filters .form-select {
+    min-width: 160px;
+    max-width: 240px;
+}
+
+.chart-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px 0;
+}
+
+.chart-last-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.chart-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f4f4f4;
+    border: 1px solid #d2d6de;
+    border-radius: 2px;
+    padding: 3px 8px;
+    font-size: 12px;
+    color: #444;
+}
+
+.chart-chip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.chart-canvas-wrap {
+    position: relative;
+    padding: 10px 10px 6px;
+    height: 280px;
+}
+
+.chart-empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
+.chart-empty[hidden] { display: none; }
+
 .sidebar-backdrop { display: none; }
 
 /* ——— Login (AdminLTE login-box) ——— */

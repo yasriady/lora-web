@@ -11,6 +11,15 @@
     data-kpis-url="{{ route('dashboard.widgets.kpis') }}"
     data-telemetry-url="{{ route('dashboard.widgets.telemetry') }}"
     data-logs-url="{{ route('dashboard.widgets.logs') }}"
+    @if ($showEnvGraph)
+        data-chart-url="{{ route('dashboard.widgets.chart') }}"
+        data-chart-temp="{{ $showTemperatureGraph ? '1' : '0' }}"
+        data-chart-hum="{{ $showHumidityGraph ? '1' : '0' }}"
+        data-chart-window="{{ (int) config('lora.graph_window_minutes', 30) }}"
+        data-chart-max="{{ (int) config('lora.graph_max_series', 8) }}"
+        data-chart-empty="{{ __('ui.dashboard.chart_empty') }}"
+        data-chart-truncated="{{ __('ui.dashboard.chart_truncated', ['count' => (int) config('lora.graph_max_series', 8)]) }}"
+    @endif
 >
 <div class="status-strip" data-widget="kpis">
     <span class="status-dot is-live" title="{{ __('ui.dashboard.live') }}"></span>
@@ -72,6 +81,43 @@
         </div>
     </div>
 </div>
+
+@if ($showEnvGraph)
+<section class="panel chart-panel" data-widget="chart">
+    <div class="panel-header chart-panel-header">
+        <div>
+            <h2 class="panel-title">{{ __('ui.dashboard.chart_title') }}</h2>
+            <div class="muted" style="font-size:12px;margin-top:4px;">
+                {{ __('ui.dashboard.chart_subtitle', ['minutes' => (int) config('lora.graph_window_minutes', 30)]) }}
+            </div>
+        </div>
+        <div class="chart-filters">
+            <select id="chartGatewayFilter" class="form-select form-select-sm" aria-label="{{ __('ui.nav.gateway') }}">
+                <option value="">{{ __('ui.dashboard.all_gateways') }}</option>
+                @foreach ($chartGateways as $gateway)
+                    <option value="{{ $gateway->gateway_id }}">{{ $gateway->name ?: $gateway->gateway_id }}</option>
+                @endforeach
+            </select>
+            <select id="chartNodeFilter" class="form-select form-select-sm" aria-label="{{ __('ui.nav.node') }}">
+                <option value="">{{ __('ui.dashboard.all_nodes') }}</option>
+                @foreach ($chartNodes as $node)
+                    <option value="{{ $node->node_id }}" data-gateway="{{ $node->gateway_id }}">
+                        {{ $node->gateway_id }} / {{ $node->name ?: $node->node_id }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+    <div class="chart-meta">
+        <div class="chart-last-values" data-bind="chartLastValues"></div>
+        <div class="muted" data-bind="chartNote" style="font-size:12px;"></div>
+    </div>
+    <div class="chart-canvas-wrap">
+        <canvas id="envChart" height="110"></canvas>
+        <div class="chart-empty muted" id="envChartEmpty">{{ __('ui.dashboard.chart_empty') }}</div>
+    </div>
+</section>
+@endif
 
 <div class="split-grid">
     <section class="panel" data-widget="telemetry">
@@ -168,3 +214,10 @@
 </div>
 </div>
 @endsection
+
+@if ($showEnvGraph)
+@push('pre-scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+@endpush
+@endif

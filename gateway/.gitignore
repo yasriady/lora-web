@@ -1,9 +1,0 @@
-# Runtime / local env
-.venv/
-venv/
-__pycache__/
-*.py[cod]
-*.db
-.env
-.env.*
-!.env.example

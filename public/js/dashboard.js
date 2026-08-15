@@ -341,6 +341,208 @@
             });
         };
 
+        const palette = ['#3c8dbc', '#00a65a', '#f39c12', '#dd4b39', '#00c0ef', '#605ca8', '#001F3F', '#39CCCC'];
+        const chartCanvas = document.getElementById('envChart');
+        const chartEmpty = document.getElementById('envChartEmpty');
+        const gatewayFilter = document.getElementById('chartGatewayFilter');
+        const nodeFilter = document.getElementById('chartNodeFilter');
+        const showTemp = dashboardRoot.getAttribute('data-chart-temp') === '1';
+        const showHum = dashboardRoot.getAttribute('data-chart-hum') === '1';
+        let envChart = null;
+        let chartSince = null;
+        let chartFilterKey = '';
+
+        const colorFor = (gatewayId, nodeId) => {
+            const key = `${gatewayId}|${nodeId}`;
+            let hash = 0;
+            for (let i = 0; i < key.length; i += 1) {
+                hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+            }
+            return palette[hash % palette.length];
+        };
+
+        const syncNodeFilterOptions = () => {
+            if (!nodeFilter) {
+                return;
+            }
+
+            const gatewayId = gatewayFilter?.value || '';
+            Array.from(nodeFilter.options).forEach((option) => {
+                if (!option.value) {
+                    option.hidden = false;
+                    return;
+                }
+                option.hidden = Boolean(gatewayId) && option.getAttribute('data-gateway') !== gatewayId;
+            });
+
+            const selected = nodeFilter.selectedOptions[0];
+            if (selected?.hidden) {
+                nodeFilter.value = '';
+            }
+        };
+
+        const resetChart = () => {
+            chartSince = null;
+            if (envChart) {
+                envChart.data.datasets = [];
+                envChart.update('none');
+            }
+        };
+
+        const ensureChart = (showTemperature, showHumidity) => {
+            if (!chartCanvas || typeof Chart === 'undefined') {
+                return null;
+            }
+
+            if (envChart) {
+                return envChart;
+            }
+
+            const scales = {
+                x: {
+                    type: 'time',
+                    time: { tooltipFormat: 'HH:mm:ss', displayFormats: { minute: 'HH:mm', second: 'HH:mm:ss' } },
+                    ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
+                    grid: { color: 'rgba(210, 214, 222, 0.6)' },
+                },
+            };
+
+            if (showTemperature) {
+                scales.temperature = {
+                    type: 'linear',
+                    position: 'left',
+                    title: { display: true, text: '°C' },
+                    grid: { color: 'rgba(210, 214, 222, 0.45)' },
+                };
+            }
+
+            if (showHumidity) {
+                scales.humidity = {
+                    type: 'linear',
+                    position: showTemperature ? 'right' : 'left',
+                    title: { display: true, text: '%' },
+                    min: 0,
+                    max: 100,
+                    grid: { drawOnChartArea: !showTemperature },
+                };
+            }
+
+            envChart = new Chart(chartCanvas, {
+                type: 'line',
+                data: { datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    interaction: { mode: 'nearest', intersect: false },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                    },
+                    scales,
+                    datasets: {
+                        line: { pointRadius: 0, pointHoverRadius: 3, borderWidth: 2, tension: 0.25 },
+                    },
+                },
+            });
+
+            return envChart;
+        };
+
+        const applyChart = (data) => {
+            const lastValues = dashboardRoot.querySelector('[data-bind="chartLastValues"]');
+            const note = dashboardRoot.querySelector('[data-bind="chartNote"]');
+            const series = Array.isArray(data.series) ? data.series : [];
+            const incremental = Boolean(chartSince);
+            const hasIncomingPoints = series.some((item) => (item.points || []).length > 0);
+            const hasExistingPoints = Boolean(envChart?.data.datasets.some((dataset) => dataset.data.length > 0));
+
+            if (chartEmpty) {
+                chartEmpty.hidden = hasIncomingPoints || hasExistingPoints;
+            }
+
+            if (note) {
+                note.textContent = data.truncated ? (dashboardRoot.getAttribute('data-chart-truncated') || '') : '';
+            }
+
+            const chart = ensureChart(showTemp, showHum);
+            if (!chart) {
+                return;
+            }
+
+            const windowMs = (Number(data.windowMinutes) || 30) * 60 * 1000;
+            const cutoff = Date.now() - windowMs;
+            const seen = new Set();
+
+            series.forEach((item) => {
+                seen.add(item.id);
+                const color = colorFor(item.gateway_id, item.node_id);
+                let dataset = chart.data.datasets.find((entry) => entry.id === item.id);
+                if (!dataset) {
+                    dataset = {
+                        id: item.id,
+                        label: item.label,
+                        unit: item.unit,
+                        yAxisID: item.axis,
+                        borderColor: color,
+                        backgroundColor: color,
+                        borderDash: item.metric === 'humidity' ? [6, 4] : [],
+                        data: [],
+                    };
+                    chart.data.datasets.push(dataset);
+                } else {
+                    dataset.label = item.label;
+                    dataset.unit = item.unit;
+                }
+
+                const incoming = (item.points || [])
+                    .filter((point) => point.t && point.v != null)
+                    .map((point) => ({ x: point.t, y: point.v }));
+
+                if (!incremental) {
+                    dataset.data = incoming;
+                } else if (incoming.length) {
+                    const lastX = dataset.data.length ? dataset.data[dataset.data.length - 1].x : null;
+                    incoming.forEach((point) => {
+                        if (!lastX || point.x > lastX) {
+                            dataset.data.push(point);
+                        }
+                    });
+                }
+
+                dataset.data = dataset.data.filter((point) => new Date(point.x).getTime() >= cutoff);
+            });
+
+            if (!incremental) {
+                chart.data.datasets = chart.data.datasets.filter((dataset) => seen.has(dataset.id));
+            }
+
+            chart.update('none');
+
+            if (lastValues) {
+                lastValues.replaceChildren();
+                chart.data.datasets.forEach((dataset) => {
+                    const lastPoint = dataset.data[dataset.data.length - 1];
+                    if (!lastPoint) {
+                        return;
+                    }
+                    const chip = document.createElement('span');
+                    chip.className = 'chart-chip';
+                    const dot = document.createElement('span');
+                    dot.className = 'chart-chip-dot';
+                    dot.style.background = dataset.borderColor;
+                    chip.appendChild(dot);
+                    chip.appendChild(document.createTextNode(`${dataset.label}: ${lastPoint.y} ${dataset.unit || ''}`));
+                    lastValues.appendChild(chip);
+                });
+            }
+
+            if (data.latest) {
+                chartSince = data.latest;
+            }
+        };
+
+        const chartUrl = dashboardRoot.getAttribute('data-chart-url');
+
         const pollers = [
             {
                 key: 'kpis',
@@ -362,11 +564,35 @@
             },
         ];
 
+        if (chartUrl && chartCanvas) {
+            pollers.push({
+                key: 'chart',
+                url: chartUrl,
+                interval: 7000,
+                apply: applyChart,
+                buildUrl: () => {
+                    const params = new URLSearchParams();
+                    if (gatewayFilter?.value) {
+                        params.set('gateway_id', gatewayFilter.value);
+                    }
+                    if (nodeFilter?.value) {
+                        params.set('node_id', nodeFilter.value);
+                    }
+                    if (chartSince) {
+                        params.set('since', chartSince);
+                    }
+                    const query = params.toString();
+                    return query ? `${chartUrl}?${query}` : chartUrl;
+                },
+            });
+        }
+
         const timers = [];
         let stopped = false;
 
         const poll = async (widget) => {
-            if (stopped || document.hidden || !widget.url || widget.inflight) {
+            const requestUrl = widget.buildUrl ? widget.buildUrl() : widget.url;
+            if (stopped || document.hidden || !requestUrl || widget.inflight) {
                 return;
             }
 
@@ -374,7 +600,7 @@
             setUpdating(widget.key, true);
 
             try {
-                const response = await fetch(widget.url, {
+                const response = await fetch(requestUrl, {
                     headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                     credentials: 'same-origin',
                 });
@@ -402,6 +628,29 @@
             const timer = setInterval(() => poll(widget), widget.interval);
             timers.push(timer);
         });
+
+        const chartWidget = pollers.find((widget) => widget.key === 'chart');
+        if (chartWidget) {
+            poll(chartWidget);
+        }
+
+        const onChartFilterChange = () => {
+            const nextKey = `${gatewayFilter?.value || ''}|${nodeFilter?.value || ''}`;
+            if (nextKey === chartFilterKey) {
+                return;
+            }
+            chartFilterKey = nextKey;
+            syncNodeFilterOptions();
+            resetChart();
+            if (chartWidget) {
+                poll(chartWidget);
+            }
+        };
+
+        gatewayFilter?.addEventListener('change', onChartFilterChange);
+        nodeFilter?.addEventListener('change', onChartFilterChange);
+        syncNodeFilterOptions();
+        chartFilterKey = `${gatewayFilter?.value || ''}|${nodeFilter?.value || ''}`;
 
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && !stopped) {
