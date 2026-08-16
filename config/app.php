@@ -15,6 +15,12 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'version' => env('APP_VERSION', '1.0'),
+
+    'git_branch' => env('APP_GIT_BRANCH'),
+
+    'git_hash' => env('APP_GIT_HASH'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

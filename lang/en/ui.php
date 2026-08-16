@@ -3,6 +3,7 @@
 return [
     'app_name' => 'LoRa Monitor',
     'app_tagline' => 'Gateway Ops Console',
+    'version' => 'Version',
     'menu' => 'Menu',
     'logout' => 'Logout',
     'cancel' => 'Cancel',

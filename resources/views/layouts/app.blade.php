@@ -165,7 +165,12 @@
     </div>
 
     <footer class="main-footer">
-        <div class="pull-right hidden-xs"><b>Version</b> 1.0</div>
+        <div class="pull-right hidden-xs">
+            <b>{{ __('ui.version') }}</b> {{ \App\Support\AppRevision::version() }}
+            @if ($revision = \App\Support\AppRevision::describe())
+                · {{ $revision }}
+            @endif
+        </div>
         <strong>{{ __('ui.app_name') }}</strong> · {{ __('ui.app_tagline') }}
     </footer>
 </div>
