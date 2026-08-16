@@ -6,37 +6,27 @@
 @section('subtitle', __('ui.logs.subtitle'))
 
 @section('content')
-<form class="card mb-3" method="GET">
-    <div class="card-body">
-        <div class="row g-2">
-            <div class="col-md">
-                <input class="form-control" name="search" value="{{ request('search') }}" placeholder="{{ __('ui.logs.search_placeholder') }}">
-            </div>
-            <div class="col-md-auto" style="min-width:180px">
-                <select class="form-select" name="level">
-                    <option value="">{{ __('ui.logs.all_levels') }}</option>
-                    <option value="info" @selected(request('level') === 'info')>Info</option>
-                    <option value="warning" @selected(request('level') === 'warning')>Warning</option>
-                    <option value="error" @selected(request('level') === 'error')>Error</option>
-                </select>
-            </div>
-            <div class="col-md-auto">
-                <button class="btn btn-outline-primary" type="submit">{{ __('ui.filter') }}</button>
-                @if (request()->hasAny(['search', 'level']))
-                    <a href="{{ route('logs.index') }}" class="btn btn-ghost-secondary">{{ __('ui.reset') }}</a>
-                @endif
-            </div>
-        </div>
-    </div>
+<form class="toolbar panel panel-body" method="GET">
+    <input class="form-control" name="search" value="{{ request('search') }}" placeholder="{{ __('ui.logs.search_placeholder') }}">
+    <select class="form-select" name="level" style="max-width:180px">
+        <option value="">{{ __('ui.logs.all_levels') }}</option>
+        <option value="info" @selected(request('level') === 'info')>Info</option>
+        <option value="warning" @selected(request('level') === 'warning')>Warning</option>
+        <option value="error" @selected(request('level') === 'error')>Error</option>
+    </select>
+    <button class="btn btn-soft" type="submit">{{ __('ui.filter') }}</button>
+    @if (request()->hasAny(['search', 'level']))
+        <a href="{{ route('logs.index') }}" class="btn btn-outline-secondary">{{ __('ui.reset') }}</a>
+    @endif
 </form>
 
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">{{ __('ui.logs.list') }}</h3>
-        <div class="card-actions text-secondary">{{ $logs->total() }} {{ __('ui.total') }}</div>
+<section class="panel">
+    <div class="panel-header">
+        <h2 class="panel-title">{{ __('ui.logs.list') }}</h2>
+        <span class="muted">{{ $logs->total() }} {{ __('ui.total') }}</span>
     </div>
     <div class="table-responsive">
-        <table class="table table-vcenter card-table">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>{{ __('ui.logs.time') }}</th>
@@ -50,18 +40,18 @@
                 @forelse ($logs as $log)
                     @php
                         $levelClass = match ($log->level) {
-                            'warning' => 'bg-warning-lt',
-                            'error' => 'bg-danger-lt',
-                            default => 'bg-azure-lt',
+                            'warning' => 'badge-offline',
+                            'error' => 'badge-danger',
+                            default => 'badge-info',
                         };
                     @endphp
                     <tr>
                         <td>
                             <div class="mono">{{ $log->created_at }}</div>
-                            <div class="text-secondary small">{{ $log->created_at?->diffForHumans() }}</div>
+                            <div class="muted" style="font-size:0.75rem;">{{ $log->created_at?->diffForHumans() }}</div>
                         </td>
                         <td class="mono">{{ $log->gateway_id ?? '—' }}</td>
-                        <td><span class="badge {{ $levelClass }}">{{ $log->level }}</span></td>
+                        <td><span class="badge-pill {{ $levelClass }}">{{ $log->level }}</span></td>
                         <td class="mono">{{ $log->event }}</td>
                         <td>{{ $log->message }}</td>
                     </tr>
@@ -70,7 +60,7 @@
                         <td colspan="5">
                             <div class="empty-state">
                                 <h3>{{ __('ui.logs.empty_title') }}</h3>
-                                <p class="text-secondary mb-0">{{ __('ui.logs.empty_body') }}</p>
+                                <p class="muted mb-0">{{ __('ui.logs.empty_body') }}</p>
                             </div>
                         </td>
                     </tr>
@@ -79,5 +69,5 @@
         </table>
     </div>
     @include('partials.table-footer', ['paginator' => $logs])
-</div>
+</section>
 @endsection

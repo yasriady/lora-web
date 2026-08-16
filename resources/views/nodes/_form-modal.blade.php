@@ -1,8 +1,8 @@
 @php
     $formId = $formId ?? null;
 @endphp
-<div class="modal modal-blur fade" id="{{ $id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+<div class="modal fade" id="{{ $id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <form class="modal-content" method="POST" action="{{ $action }}" @if($formId) id="{{ $formId }}" @endif>
             @csrf
             @if (($method ?? 'POST') !== 'POST')
@@ -50,13 +50,13 @@
                     <div class="col-12 js-schema-wrap">
                         <label class="form-label">{{ __('ui.node.schema_json') }}</label>
                         <textarea class="form-control mono js-schema-json" name="metrics_schema_json" rows="6" placeholder='{"temperature":{"label":"Temperature","unit":"°C","type":"number"}}'></textarea>
-                        <div class="form-hint">{{ __('ui.node.schema_help') }}</div>
+                        <div class="form-text">{{ __('ui.node.schema_help') }}</div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">{{ __('ui.cancel') }}</button>
-                <button class="btn btn-primary ms-auto" type="submit">{{ ($method ?? 'POST') === 'PUT' ? __('ui.update') : __('ui.save') }}</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('ui.cancel') }}</button>
+                <button class="btn btn-brand" type="submit">{{ ($method ?? 'POST') === 'PUT' ? __('ui.update') : __('ui.save') }}</button>
             </div>
         </form>
     </div>

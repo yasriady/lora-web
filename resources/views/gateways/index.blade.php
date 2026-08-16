@@ -6,40 +6,30 @@
 @section('subtitle', __('ui.gateway.subtitle'))
 
 @section('actions')
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGatewayModal">{{ __('ui.gateway.add') }}</button>
+<button type="button" class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#createGatewayModal">{{ __('ui.gateway.add') }}</button>
 @endsection
 
 @section('content')
-<form class="card mb-3" method="GET">
-    <div class="card-body">
-        <div class="row g-2">
-            <div class="col-md">
-                <input class="form-control" name="search" value="{{ request('search') }}" placeholder="{{ __('ui.gateway.search_placeholder') }}">
-            </div>
-            <div class="col-md-auto" style="min-width:180px">
-                <select class="form-select" name="status">
-                    <option value="">{{ __('ui.all_status') }}</option>
-                    <option value="active" @selected(request('status') === 'active')>{{ __('ui.active') }}</option>
-                    <option value="inactive" @selected(request('status') === 'inactive')>{{ __('ui.inactive') }}</option>
-                </select>
-            </div>
-            <div class="col-md-auto">
-                <button class="btn btn-outline-primary" type="submit">{{ __('ui.filter') }}</button>
-                @if (request()->hasAny(['search', 'status']))
-                    <a href="{{ route('gateways.index') }}" class="btn btn-ghost-secondary">{{ __('ui.reset') }}</a>
-                @endif
-            </div>
-        </div>
-    </div>
+<form class="toolbar panel panel-body" method="GET">
+    <input class="form-control" name="search" value="{{ request('search') }}" placeholder="{{ __('ui.gateway.search_placeholder') }}">
+    <select class="form-select" name="status" style="max-width:180px">
+        <option value="">{{ __('ui.all_status') }}</option>
+        <option value="active" @selected(request('status') === 'active')>{{ __('ui.active') }}</option>
+        <option value="inactive" @selected(request('status') === 'inactive')>{{ __('ui.inactive') }}</option>
+    </select>
+    <button class="btn btn-soft" type="submit">{{ __('ui.filter') }}</button>
+    @if (request()->hasAny(['search', 'status']))
+        <a href="{{ route('gateways.index') }}" class="btn btn-outline-secondary">{{ __('ui.reset') }}</a>
+    @endif
 </form>
 
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">{{ __('ui.gateway.list') }}</h3>
-        <div class="card-actions text-secondary">{{ $gateways->total() }} {{ __('ui.total') }}</div>
+<section class="panel">
+    <div class="panel-header">
+        <h2 class="panel-title">{{ __('ui.gateway.list') }}</h2>
+        <span class="muted">{{ $gateways->total() }} {{ __('ui.total') }}</span>
     </div>
     <div class="table-responsive">
-        <table class="table table-vcenter card-table">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>{{ __('ui.nav.gateway') }}</th>
@@ -56,28 +46,28 @@
                     @endphp
                     <tr>
                         <td>
-                            <div class="fw-bold">{{ $gateway->name }}</div>
-                            <div class="mono text-secondary">{{ $gateway->gateway_id }}</div>
+                            <div class="fw-semibold">{{ $gateway->name }}</div>
+                            <div class="mono muted">{{ $gateway->gateway_id }}</div>
                             @if ($gateway->description)
-                                <div class="text-secondary small">{{ \Illuminate\Support\Str::limit($gateway->description, 60) }}</div>
+                                <div class="muted" style="font-size:0.78rem;">{{ \Illuminate\Support\Str::limit($gateway->description, 60) }}</div>
                             @endif
                         </td>
                         <td>{{ $gateway->location ?: '—' }}</td>
                         <td>
                             @if (! $gateway->enabled)
-                                <span class="badge bg-secondary-lt">{{ __('ui.disabled') }}</span>
+                                <span class="badge-pill badge-disabled">{{ __('ui.disabled') }}</span>
                             @elseif ($online)
-                                <span class="badge bg-success-lt">{{ __('ui.online') }}</span>
+                                <span class="badge-pill badge-online">{{ __('ui.online') }}</span>
                             @else
-                                <span class="badge bg-warning-lt">{{ __('ui.offline') }}</span>
+                                <span class="badge-pill badge-offline">{{ __('ui.offline') }}</span>
                             @endif
                         </td>
                         <td>
                             @if ($gateway->last_seen)
                                 <div>{{ $gateway->last_seen->diffForHumans() }}</div>
-                                <div class="mono text-secondary small">{{ $gateway->last_seen }}</div>
+                                <div class="mono muted" style="font-size:0.75rem;">{{ $gateway->last_seen }}</div>
                             @else
-                                <span class="text-secondary">{{ __('ui.never') }}</span>
+                                <span class="muted">{{ __('ui.never') }}</span>
                             @endif
                         </td>
                         <td>
@@ -98,7 +88,7 @@
                                 <form method="POST" action="{{ route('gateways.toggle', $gateway) }}">
                                     @csrf
                                     @method('PATCH')
-                                    <button class="btn btn-sm btn-ghost-secondary" type="submit">{{ $gateway->enabled ? __('ui.disable') : __('ui.enable') }}</button>
+                                    <button class="btn btn-sm btn-soft" type="submit">{{ $gateway->enabled ? __('ui.disable') : __('ui.enable') }}</button>
                                 </form>
                                 <button
                                     type="button"
@@ -116,8 +106,8 @@
                         <td colspan="5">
                             <div class="empty-state">
                                 <h3>{{ __('ui.gateway.empty_title') }}</h3>
-                                <p class="text-secondary mb-3">{{ __('ui.gateway.empty_body') }}</p>
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createGatewayModal">{{ __('ui.gateway.add') }}</button>
+                                <p class="muted mb-3">{{ __('ui.gateway.empty_body') }}</p>
+                                <button type="button" class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#createGatewayModal">{{ __('ui.gateway.add') }}</button>
                             </div>
                         </td>
                     </tr>
@@ -126,10 +116,10 @@
         </table>
     </div>
     @include('partials.table-footer', ['paginator' => $gateways])
-</div>
+</section>
 
-<div class="modal modal-blur fade" id="createGatewayModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<div class="modal fade" id="createGatewayModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content" method="POST" action="{{ route('gateways.store') }}">
             @csrf
             <div class="modal-header">
@@ -155,15 +145,15 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">{{ __('ui.cancel') }}</button>
-                <button class="btn btn-primary ms-auto" type="submit">{{ __('ui.save') }}</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('ui.cancel') }}</button>
+                <button class="btn btn-brand" type="submit">{{ __('ui.save') }}</button>
             </div>
         </form>
     </div>
 </div>
 
-<div class="modal modal-blur fade" id="editGatewayModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<div class="modal fade" id="editGatewayModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content" method="POST" id="editGatewayForm">
             @csrf
             @method('PUT')
@@ -190,8 +180,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">{{ __('ui.cancel') }}</button>
-                <button class="btn btn-primary ms-auto" type="submit">{{ __('ui.update') }}</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('ui.cancel') }}</button>
+                <button class="btn btn-brand" type="submit">{{ __('ui.update') }}</button>
             </div>
         </form>
     </div>

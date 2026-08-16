@@ -6,54 +6,42 @@
 @section('subtitle', __('ui.node.subtitle'))
 
 @section('actions')
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createNodeModal" @disabled($gateways->isEmpty())>{{ __('ui.node.add') }}</button>
+<button type="button" class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#createNodeModal" @disabled($gateways->isEmpty())>{{ __('ui.node.add') }}</button>
 @endsection
 
 @section('content')
 @if ($gateways->isEmpty())
-    <div class="alert alert-warning" role="alert">{{ __('ui.node.need_gateway') }}</div>
+    <div class="flash flash-warning">{{ __('ui.node.need_gateway') }}</div>
 @endif
 
-<form class="card mb-3" method="GET">
-    <div class="card-body">
-        <div class="row g-2">
-            <div class="col-md">
-                <input class="form-control" name="search" value="{{ request('search') }}" placeholder="{{ __('ui.node.search_placeholder') }}">
-            </div>
-            <div class="col-md-auto" style="min-width:200px">
-                <select class="form-select" name="gateway_id">
-                    <option value="">{{ __('ui.node.all_gateways') }}</option>
-                    @foreach ($gateways as $gateway)
-                        <option value="{{ $gateway->gateway_id }}" @selected(request('gateway_id') === $gateway->gateway_id)>{{ $gateway->gateway_id }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-md-auto" style="min-width:180px">
-                <select class="form-select" name="status">
-                    <option value="">{{ __('ui.all_status') }}</option>
-                    <option value="online" @selected(request('status') === 'online')>{{ __('ui.online') }}</option>
-                    <option value="offline" @selected(request('status') === 'offline')>{{ __('ui.offline') }}</option>
-                    <option value="active" @selected(request('status') === 'active')>{{ __('ui.active') }}</option>
-                    <option value="disabled" @selected(request('status') === 'disabled')>{{ __('ui.disabled') }}</option>
-                </select>
-            </div>
-            <div class="col-md-auto">
-                <button class="btn btn-outline-primary" type="submit">{{ __('ui.filter') }}</button>
-                @if (request()->hasAny(['search', 'gateway_id', 'status']))
-                    <a href="{{ route('nodes.index') }}" class="btn btn-ghost-secondary">{{ __('ui.reset') }}</a>
-                @endif
-            </div>
-        </div>
-    </div>
+<form class="toolbar panel panel-body" method="GET">
+    <input class="form-control" name="search" value="{{ request('search') }}" placeholder="{{ __('ui.node.search_placeholder') }}">
+    <select class="form-select" name="gateway_id" style="max-width:200px">
+        <option value="">{{ __('ui.node.all_gateways') }}</option>
+        @foreach ($gateways as $gateway)
+            <option value="{{ $gateway->gateway_id }}" @selected(request('gateway_id') === $gateway->gateway_id)>{{ $gateway->gateway_id }}</option>
+        @endforeach
+    </select>
+    <select class="form-select" name="status" style="max-width:180px">
+        <option value="">{{ __('ui.all_status') }}</option>
+        <option value="online" @selected(request('status') === 'online')>{{ __('ui.online') }}</option>
+        <option value="offline" @selected(request('status') === 'offline')>{{ __('ui.offline') }}</option>
+        <option value="active" @selected(request('status') === 'active')>{{ __('ui.active') }}</option>
+        <option value="disabled" @selected(request('status') === 'disabled')>{{ __('ui.disabled') }}</option>
+    </select>
+    <button class="btn btn-soft" type="submit">{{ __('ui.filter') }}</button>
+    @if (request()->hasAny(['search', 'gateway_id', 'status']))
+        <a href="{{ route('nodes.index') }}" class="btn btn-outline-secondary">{{ __('ui.reset') }}</a>
+    @endif
 </form>
 
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">{{ __('ui.node.list') }}</h3>
-        <div class="card-actions text-secondary">{{ $nodes->total() }} {{ __('ui.total') }}</div>
+<section class="panel">
+    <div class="panel-header">
+        <h2 class="panel-title">{{ __('ui.node.list') }}</h2>
+        <span class="muted">{{ $nodes->total() }} {{ __('ui.total') }}</span>
     </div>
     <div class="table-responsive">
-        <table class="table table-vcenter card-table">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>{{ __('ui.nav.node') }}</th>
@@ -73,30 +61,30 @@
                     @endphp
                     <tr>
                         <td>
-                            <div class="fw-bold">{{ $node->name }}</div>
-                            <div class="mono text-secondary">{{ $node->node_id }}</div>
+                            <div class="fw-semibold">{{ $node->name }}</div>
+                            <div class="mono muted">{{ $node->node_id }}</div>
                         </td>
                         <td class="mono">{{ $node->gateway_id }}</td>
                         <td>
                             <div>{{ $typeLabel }}</div>
-                            <div class="mono text-secondary small">{{ implode(', ', array_keys($node->resolvedMetricsSchema())) ?: 'any' }}</div>
+                            <div class="mono muted" style="font-size:0.72rem;">{{ implode(', ', array_keys($node->resolvedMetricsSchema())) ?: 'any' }}</div>
                         </td>
                         <td>{{ $node->location ?: '—' }}</td>
                         <td>
                             @if (! $node->enabled)
-                                <span class="badge bg-secondary-lt">{{ __('ui.disabled') }}</span>
+                                <span class="badge-pill badge-disabled">{{ __('ui.disabled') }}</span>
                             @elseif ($online)
-                                <span class="badge bg-success-lt">{{ __('ui.online') }}</span>
+                                <span class="badge-pill badge-online">{{ __('ui.online') }}</span>
                             @else
-                                <span class="badge bg-warning-lt">{{ __('ui.offline') }}</span>
+                                <span class="badge-pill badge-offline">{{ __('ui.offline') }}</span>
                             @endif
                         </td>
                         <td>
                             @if ($node->last_seen)
                                 <div>{{ $node->last_seen->diffForHumans() }}</div>
-                                <div class="mono text-secondary small">{{ $node->last_seen }}</div>
+                                <div class="mono muted" style="font-size:0.75rem;">{{ $node->last_seen }}</div>
                             @else
-                                <span class="text-secondary">{{ __('ui.never') }}</span>
+                                <span class="muted">{{ __('ui.never') }}</span>
                             @endif
                         </td>
                         <td>
@@ -120,7 +108,7 @@
                                 <form method="POST" action="{{ route('nodes.toggle', $node) }}">
                                     @csrf
                                     @method('PATCH')
-                                    <button class="btn btn-sm btn-ghost-secondary" type="submit">{{ $node->enabled ? __('ui.disable') : __('ui.enable') }}</button>
+                                    <button class="btn btn-sm btn-soft" type="submit">{{ $node->enabled ? __('ui.disable') : __('ui.enable') }}</button>
                                 </form>
                                 <button
                                     type="button"
@@ -138,9 +126,9 @@
                         <td colspan="7">
                             <div class="empty-state">
                                 <h3>{{ __('ui.node.empty_title') }}</h3>
-                                <p class="text-secondary mb-3">{{ __('ui.node.empty_body') }}</p>
+                                <p class="muted mb-3">{{ __('ui.node.empty_body') }}</p>
                                 @unless ($gateways->isEmpty())
-                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createNodeModal">{{ __('ui.node.add') }}</button>
+                                    <button type="button" class="btn btn-brand" data-bs-toggle="modal" data-bs-target="#createNodeModal">{{ __('ui.node.add') }}</button>
                                 @endunless
                             </div>
                         </td>
@@ -150,7 +138,7 @@
         </table>
     </div>
     @include('partials.table-footer', ['paginator' => $nodes])
-</div>
+</section>
 
 @include('nodes._form-modal', [
     'id' => 'createNodeModal',
