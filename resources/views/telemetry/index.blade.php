@@ -6,43 +6,57 @@
 @section('subtitle', __('ui.telemetry.subtitle'))
 
 @section('actions')
-<a class="btn btn-soft" href="{{ route('telemetry.export', request()->query()) }}">{{ __('ui.telemetry.export') }}</a>
+<a class="btn btn-outline-secondary" href="{{ route('telemetry.export', request()->query()) }}">{{ __('ui.telemetry.export') }}</a>
 @endsection
 
 @section('content')
-<form class="toolbar panel panel-body" method="GET">
-    <input class="form-control" name="search" value="{{ request('search') }}" placeholder="{{ __('ui.telemetry.search_placeholder') }}">
-    <select class="form-select" name="gateway_id" style="max-width:200px">
-        <option value="">{{ __('ui.telemetry.all_gateways') }}</option>
-        @foreach ($gateways as $gateway)
-            <option value="{{ $gateway->gateway_id }}" @selected(request('gateway_id') === $gateway->gateway_id)>{{ $gateway->gateway_id }}</option>
-        @endforeach
-    </select>
-    <select class="form-select" name="node_id" style="max-width:200px">
-        <option value="">{{ __('ui.telemetry.all_nodes') }}</option>
-        @foreach ($nodes as $node)
-            <option value="{{ $node->node_id }}" @selected(request('node_id') === $node->node_id)>{{ $node->node_id }}</option>
-        @endforeach
-    </select>
-    <select class="form-select" name="metric_key" style="max-width:200px">
-        <option value="">{{ __('ui.telemetry.all_metrics') }}</option>
-        @foreach ($metricKeys as $metricKey)
-            <option value="{{ $metricKey }}" @selected(request('metric_key') === $metricKey)>{{ $metricKey }}</option>
-        @endforeach
-    </select>
-    <button class="btn btn-soft" type="submit">{{ __('ui.filter') }}</button>
-    @if (request()->hasAny(['search', 'gateway_id', 'node_id', 'metric_key']))
-        <a href="{{ route('telemetry.index') }}" class="btn btn-outline-secondary">{{ __('ui.reset') }}</a>
-    @endif
+<form class="card mb-3" method="GET">
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md">
+                <input class="form-control" name="search" value="{{ request('search') }}" placeholder="{{ __('ui.telemetry.search_placeholder') }}">
+            </div>
+            <div class="col-md-auto" style="min-width:180px">
+                <select class="form-select" name="gateway_id">
+                    <option value="">{{ __('ui.telemetry.all_gateways') }}</option>
+                    @foreach ($gateways as $gateway)
+                        <option value="{{ $gateway->gateway_id }}" @selected(request('gateway_id') === $gateway->gateway_id)>{{ $gateway->gateway_id }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-auto" style="min-width:180px">
+                <select class="form-select" name="node_id">
+                    <option value="">{{ __('ui.telemetry.all_nodes') }}</option>
+                    @foreach ($nodes as $node)
+                        <option value="{{ $node->node_id }}" @selected(request('node_id') === $node->node_id)>{{ $node->node_id }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-auto" style="min-width:180px">
+                <select class="form-select" name="metric_key">
+                    <option value="">{{ __('ui.telemetry.all_metrics') }}</option>
+                    @foreach ($metricKeys as $metricKey)
+                        <option value="{{ $metricKey }}" @selected(request('metric_key') === $metricKey)>{{ $metricKey }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-auto">
+                <button class="btn btn-outline-primary" type="submit">{{ __('ui.filter') }}</button>
+                @if (request()->hasAny(['search', 'gateway_id', 'node_id', 'metric_key']))
+                    <a href="{{ route('telemetry.index') }}" class="btn btn-ghost-secondary">{{ __('ui.reset') }}</a>
+                @endif
+            </div>
+        </div>
+    </div>
 </form>
 
-<section class="panel">
-    <div class="panel-header">
-        <h2 class="panel-title">{{ __('ui.telemetry.history') }}</h2>
-        <span class="muted">{{ $telemetry->total() }} {{ __('ui.rows') }}</span>
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">{{ __('ui.telemetry.history') }}</h3>
+        <div class="card-actions text-secondary">{{ $telemetry->total() }} {{ __('ui.rows') }}</div>
     </div>
     <div class="table-responsive">
-        <table class="data-table">
+        <table class="table table-vcenter card-table">
             <thead>
                 <tr>
                     <th>{{ __('ui.telemetry.time') }}</th>
@@ -59,16 +73,16 @@
                     <tr>
                         <td>
                             <div class="mono">{{ $item->timestamp }}</div>
-                            <div class="muted" style="font-size:0.75rem;">{{ $item->timestamp?->diffForHumans() }}</div>
+                            <div class="text-secondary small">{{ $item->timestamp?->diffForHumans() }}</div>
                         </td>
                         <td class="mono">{{ $item->gateway_id }}</td>
                         <td class="mono">{{ $item->node_id }}</td>
                         <td>
                             <div class="d-flex flex-wrap gap-1">
                                 @forelse ($item->displayMetrics() as $key => $value)
-                                    <span class="badge-pill badge-info mono">{{ $key }}: {{ $value }}</span>
+                                    <span class="badge bg-azure-lt mono">{{ $key }}: {{ $value }}</span>
                                 @empty
-                                    <span class="muted">—</span>
+                                    <span class="text-secondary">—</span>
                                 @endforelse
                             </div>
                         </td>
@@ -81,7 +95,7 @@
                         <td colspan="7">
                             <div class="empty-state">
                                 <h3>{{ __('ui.telemetry.empty_title') }}</h3>
-                                <p class="muted mb-0">{{ __('ui.telemetry.empty_body') }}</p>
+                                <p class="text-secondary mb-0">{{ __('ui.telemetry.empty_body') }}</p>
                             </div>
                         </td>
                     </tr>
@@ -90,5 +104,5 @@
         </table>
     </div>
     @include('partials.table-footer', ['paginator' => $telemetry])
-</section>
+</div>
 @endsection

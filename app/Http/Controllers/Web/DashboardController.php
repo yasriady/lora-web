@@ -80,9 +80,9 @@ class DashboardController extends Controller
                     'time' => $log->created_at?->diffForHumans() ?? '—',
                     'level' => $level,
                     'levelClass' => match ($level) {
-                        'warning' => 'badge-offline',
-                        'error' => 'badge-danger',
-                        default => 'badge-info',
+                        'warning' => 'bg-warning-lt',
+                        'error' => 'bg-danger-lt',
+                        default => 'bg-azure-lt',
                     },
                 ];
             })->values(),

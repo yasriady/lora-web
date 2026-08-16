@@ -1,28 +1,4 @@
 (() => {
-    const sidebar = document.getElementById('appSidebar');
-    const backdrop = document.getElementById('sidebarBackdrop');
-    const toggle = document.getElementById('sidebarToggle');
-    const body = document.body;
-
-    const closeSidebar = () => {
-        sidebar?.classList.remove('open');
-        backdrop?.classList.remove('show');
-        body.classList.remove('sidebar-open');
-    };
-
-    toggle?.addEventListener('click', () => {
-        if (window.matchMedia('(max-width: 767px)').matches) {
-            sidebar?.classList.toggle('open');
-            backdrop?.classList.toggle('show');
-            body.classList.toggle('sidebar-open', sidebar?.classList.contains('open'));
-            return;
-        }
-
-        body.classList.toggle('sidebar-collapse');
-    });
-
-    backdrop?.addEventListener('click', closeSidebar);
-
     document.querySelectorAll('[data-copy]').forEach((button) => {
         button.addEventListener('click', async () => {
             const value = button.getAttribute('data-copy') || '';
@@ -240,7 +216,7 @@
             const wrap = document.createElement('div');
             wrap.className = 'empty-state';
             const muted = document.createElement('div');
-            muted.className = 'muted';
+            muted.className = 'text-secondary';
             muted.textContent = text;
             wrap.appendChild(muted);
             td.appendChild(wrap);
@@ -273,8 +249,7 @@
                 nodeId.className = 'mono';
                 nodeId.textContent = row.node_id || '';
                 const gatewayId = document.createElement('div');
-                gatewayId.className = 'muted';
-                gatewayId.style.fontSize = '12px';
+                gatewayId.className = 'text-secondary small';
                 gatewayId.textContent = row.gateway_id || '';
                 node.append(nodeId, gatewayId);
                 tr.appendChild(node);
@@ -284,7 +259,7 @@
                 wrap.className = 'd-flex flex-wrap gap-1';
                 (row.metrics || []).forEach((metric) => {
                     const badge = document.createElement('span');
-                    badge.className = 'badge-pill badge-info mono';
+                    badge.className = 'badge bg-azure-lt mono';
                     badge.textContent = `${metric.key}: ${metric.value}`;
                     wrap.appendChild(badge);
                 });
@@ -320,11 +295,10 @@
                 title.className = 'mono';
                 title.textContent = row.event || '';
                 const message = document.createElement('div');
-                message.className = 'muted';
-                message.style.fontSize = '12px';
+                message.className = 'text-secondary small';
                 message.textContent = row.message || '';
                 const time = document.createElement('div');
-                time.className = 'muted';
+                time.className = 'text-secondary';
                 time.style.fontSize = '11px';
                 time.textContent = row.time || '';
                 event.append(title, message, time);
@@ -332,7 +306,7 @@
 
                 const level = document.createElement('td');
                 const badge = document.createElement('span');
-                badge.className = `badge-pill ${row.levelClass || 'badge-info'}`;
+                badge.className = `badge ${row.levelClass || 'bg-azure-lt'}`;
                 badge.textContent = row.level || '';
                 level.appendChild(badge);
                 tr.appendChild(level);
@@ -341,7 +315,7 @@
             });
         };
 
-        const palette = ['#3c8dbc', '#00a65a', '#f39c12', '#dd4b39', '#00c0ef', '#605ca8', '#001F3F', '#39CCCC'];
+        const palette = ['#206bc4', '#2fb344', '#f59f00', '#d63939', '#4299e1', '#ae3ec9', '#0ca678', '#f76707'];
         const chartCanvas = document.getElementById('envChart');
         const chartEmpty = document.getElementById('envChartEmpty');
         const gatewayFilter = document.getElementById('chartGatewayFilter');

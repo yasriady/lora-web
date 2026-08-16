@@ -6,14 +6,11 @@
 @section('subtitle', __('ui.placeholder.subtitle'))
 
 @section('content')
-<section class="panel">
-    <div class="panel-header">
-        <h2 class="panel-title">@yield('heading')</h2>
-    </div>
-    <div class="empty-state">
-        <div class="brand-mark" style="margin:0 auto;">L</div>
+<div class="card">
+    <div class="card-body empty-state">
+        <span class="avatar avatar-lg bg-primary text-white mb-3">L</span>
         <h3>{{ __('ui.placeholder.title') }}</h3>
-        <p class="muted mb-0">{{ __('ui.placeholder.body') }}</p>
+        <p class="text-secondary mb-0">{{ __('ui.placeholder.body') }}</p>
     </div>
-</section>
+</div>
 @endsection
