@@ -8,6 +8,7 @@ use App\Models\GatewayLog;
 use App\Models\Node;
 use App\Models\Telemetry;
 use App\Models\TelemetryReading;
+use App\Support\PacketDeliveryRatio;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -58,6 +59,7 @@ class DashboardController extends Controller
                     'node_id' => (string) $item->node_id,
                     'gateway_id' => (string) $item->gateway_id,
                     'metrics' => $metrics,
+                    'seq' => $item->seq === null ? '—' : (string) $item->seq,
                     'rssi' => $item->rssi === null ? '—' : (string) $item->rssi,
                 ];
             })->values(),
@@ -308,6 +310,51 @@ class DashboardController extends Controller
     }
 
     /**
+     * Combine per-node sequence PDR for the given telemetry query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Telemetry>  $query
+     * @return array{received: int, expected: int, lost: int, ratio: float}|null
+     */
+    private function packetDeliveryRatioFor($query): ?array
+    {
+        $packets = (clone $query)
+            ->reorder()
+            ->whereNotNull('seq')
+            ->orderBy('gateway_id')
+            ->orderBy('node_id')
+            ->orderBy('timestamp')
+            ->get(['gateway_id', 'node_id', 'seq']);
+
+        if ($packets->isEmpty()) {
+            return null;
+        }
+
+        $received = 0;
+        $expected = 0;
+
+        foreach ($packets->groupBy(fn (Telemetry $row): string => $row->gateway_id.'|'.$row->node_id) as $group) {
+            $pdr = PacketDeliveryRatio::fromSequences($group->pluck('seq'));
+            if ($pdr === null) {
+                continue;
+            }
+
+            $received += $pdr['received'];
+            $expected += $pdr['expected'];
+        }
+
+        if ($expected <= 0) {
+            return null;
+        }
+
+        return [
+            'received' => $received,
+            'expected' => $expected,
+            'lost' => max(0, $expected - $received),
+            'ratio' => $received / $expected,
+        ];
+    }
+
+    /**
      * @return array<string, int|string>
      */
     private function kpiPayload(): array
@@ -318,6 +365,9 @@ class DashboardController extends Controller
             ->where(fn ($q) => $q->whereNull('last_seen')->orWhere('last_seen', '<', $threshold))
             ->count();
         $todayPacketCount = Telemetry::query()->whereDate('timestamp', today())->count();
+        $todayPdr = $this->packetDeliveryRatioFor(
+            Telemetry::query()->whereDate('timestamp', today())
+        );
 
         return [
             'gatewayCount' => Gateway::query()->count(),
@@ -326,6 +376,15 @@ class DashboardController extends Controller
             'offlineNodeCount' => $offlineNodeCount,
             'todayPacketCount' => $todayPacketCount,
             'packetCount' => Telemetry::query()->count(),
+            'todayPdrText' => $todayPdr === null
+                ? '—'
+                : number_format($todayPdr['ratio'] * 100, 1).'%',
+            'todayPdrMeta' => $todayPdr === null
+                ? __('ui.dashboard.pdr_unavailable')
+                : __('ui.dashboard.pdr_today_meta', [
+                    'received' => number_format($todayPdr['received']),
+                    'expected' => number_format($todayPdr['expected']),
+                ]),
             'statusText' => __('ui.dashboard.status_online', [
                 'online' => number_format($onlineNodeCount),
                 'offline' => number_format($offlineNodeCount),
@@ -358,6 +417,7 @@ class DashboardController extends Controller
             $query->whereHas('readings', fn ($q) => $q->where('metric_key', $metricKey));
         }
 
+        $pdr = $this->packetDeliveryRatioFor($query);
         $telemetry = $query->paginate(15)->withQueryString();
 
         $metricKeys = TelemetryReading::query()
@@ -371,6 +431,7 @@ class DashboardController extends Controller
             'gateways' => Gateway::query()->orderBy('gateway_id')->get(),
             'nodes' => Node::query()->orderBy('node_id')->get(),
             'metricKeys' => $metricKeys,
+            'pdr' => $pdr,
         ]);
     }
 

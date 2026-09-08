@@ -40,6 +40,13 @@
     <div class="panel-header">
         <h2 class="panel-title">{{ __('ui.telemetry.history') }}</h2>
         <span class="muted">{{ $telemetry->total() }} {{ __('ui.rows') }}</span>
+        @if ($pdr)
+            <span class="badge-pill badge-info mono">
+                {{ __('ui.telemetry.pdr') }}:
+                {{ number_format($pdr['ratio'] * 100, 1) }}%
+                ({{ number_format($pdr['received']) }}/{{ number_format($pdr['expected']) }})
+            </span>
+        @endif
     </div>
     <div class="table-responsive">
         <table class="data-table">
@@ -48,6 +55,7 @@
                     <th>{{ __('ui.telemetry.time') }}</th>
                     <th>{{ __('ui.nav.gateway') }}</th>
                     <th>{{ __('ui.nav.node') }}</th>
+                    <th>{{ __('ui.telemetry.seq') }}</th>
                     <th>{{ __('ui.telemetry.metrics') }}</th>
                     <th>{{ __('ui.telemetry.battery') }}</th>
                     <th>RSSI</th>
@@ -63,6 +71,7 @@
                         </td>
                         <td class="mono">{{ $item->gateway_id }}</td>
                         <td class="mono">{{ $item->node_id }}</td>
+                        <td class="mono">{{ $item->seq ?? '—' }}</td>
                         <td>
                             <div class="d-flex flex-wrap gap-1">
                                 @forelse ($item->displayMetrics() as $key => $value)
@@ -78,7 +87,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7">
+                        <td colspan="8">
                             <div class="empty-state">
                                 <h3>{{ __('ui.telemetry.empty_title') }}</h3>
                                 <p class="muted mb-0">{{ __('ui.telemetry.empty_body') }}</p>

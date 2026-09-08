@@ -42,6 +42,7 @@ class StoreTelemetryRequest extends FormRequest
             'battery' => ['nullable', 'numeric', 'between:0,10'],
             'rssi' => ['nullable', 'integer', 'between:-200,0'],
             'snr' => ['nullable', 'numeric', 'between:-50,50'],
+            'seq' => ['nullable', 'integer', 'min:1', 'max:4294967295'],
             'metrics' => ['required', 'array', 'min:1'],
             'metrics.*' => ['numeric'],
             // Legacy fields remain accepted but optional.

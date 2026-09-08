@@ -70,6 +70,9 @@ return [
         'packets_today_meta' => 'Telemetry masuk sejak 00:00',
         'packets_total' => 'Packet Total',
         'packets_total_meta' => 'Seluruh histori tersimpan',
+        'pdr_today' => 'PDR hari ini',
+        'pdr_today_meta' => ':received / :expected packet berdasarkan seq',
+        'pdr_unavailable' => 'Belum ada nomor seq',
         'recent_telemetry' => 'Telemetry terbaru',
         'recent_logs' => 'Log penting',
         'view_all' => 'Lihat semua',
@@ -154,6 +157,8 @@ return [
         'temp' => 'Temp',
         'hum' => 'Hum',
         'battery' => 'Battery',
+        'seq' => 'Seq',
+        'pdr' => 'PDR',
     ],
     'logs' => [
         'kicker' => 'Observability',

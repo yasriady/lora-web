@@ -50,6 +50,7 @@ class TelemetryIngestionService
                 'battery' => $payload['battery'] ?? null,
                 'rssi' => $payload['rssi'] ?? null,
                 'snr' => $payload['snr'] ?? null,
+                'seq' => $payload['seq'] ?? null,
             ]);
 
             $readingRows = [];

@@ -65,7 +65,7 @@
     </div>
 </div>
 
-<div class="kpi-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));" data-widget="kpis">
+<div class="kpi-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));" data-widget="kpis">
     <div class="kpi bg-aqua">
         <div class="kpi-inner">
             <div class="kpi-value" data-bind="todayPacketCount">{{ number_format($todayPacketCount) }}</div>
@@ -78,6 +78,13 @@
             <div class="kpi-value" data-bind="packetCount">{{ number_format($packetCount) }}</div>
             <div class="kpi-label">{{ __('ui.dashboard.packets_total') }}</div>
             <div class="kpi-meta">{{ __('ui.dashboard.packets_total_meta') }}</div>
+        </div>
+    </div>
+    <div class="kpi bg-yellow">
+        <div class="kpi-inner">
+            <div class="kpi-value" data-bind="todayPdrText">{{ $todayPdrText }}</div>
+            <div class="kpi-label">{{ __('ui.dashboard.pdr_today') }}</div>
+            <div class="kpi-meta" data-bind="todayPdrMeta">{{ $todayPdrMeta }}</div>
         </div>
     </div>
 </div>
@@ -132,6 +139,7 @@
                         <th>{{ __('ui.dashboard.time') }}</th>
                         <th>{{ __('ui.nav.node') }}</th>
                         <th>{{ __('ui.telemetry.metrics') }}</th>
+                        <th>{{ __('ui.telemetry.seq') }}</th>
                         <th>RSSI</th>
                     </tr>
                 </thead>
@@ -150,11 +158,12 @@
                                     @endforeach
                                 </div>
                             </td>
+                            <td class="mono">{{ $item->seq ?? '—' }}</td>
                             <td class="mono">{{ $item->rssi ?? '—' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4">
+                            <td colspan="5">
                                 <div class="empty-state">
                                     <div class="muted">{{ __('ui.dashboard.no_telemetry') }}</div>
                                 </div>

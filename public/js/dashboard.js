@@ -222,6 +222,8 @@
                 offlineNodeCount: formatCount(data.offlineNodeCount),
                 todayPacketCount: formatCount(data.todayPacketCount),
                 packetCount: formatCount(data.packetCount),
+                todayPdrText: data.todayPdrText || '—',
+                todayPdrMeta: data.todayPdrMeta || '',
             };
 
             Object.entries(map).forEach(([key, value]) => {
@@ -256,7 +258,7 @@
 
             tbody.replaceChildren();
             if (data.empty || !Array.isArray(data.rows) || data.rows.length === 0) {
-                tbody.appendChild(emptyRow(4, data.emptyText || ''));
+                tbody.appendChild(emptyRow(5, data.emptyText || ''));
                 return;
             }
 
@@ -290,6 +292,11 @@
                 });
                 metrics.appendChild(wrap);
                 tr.appendChild(metrics);
+
+                const seq = document.createElement('td');
+                seq.className = 'mono';
+                seq.textContent = row.seq || '—';
+                tr.appendChild(seq);
 
                 const rssi = document.createElement('td');
                 rssi.className = 'mono';

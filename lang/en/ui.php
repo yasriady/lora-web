@@ -70,6 +70,9 @@ return [
         'packets_today_meta' => 'Telemetry received since 00:00',
         'packets_total' => 'Total packets',
         'packets_total_meta' => 'All stored history',
+        'pdr_today' => 'PDR today',
+        'pdr_today_meta' => ':received / :expected packets by seq',
+        'pdr_unavailable' => 'No sequence numbers yet',
         'recent_telemetry' => 'Latest telemetry',
         'recent_logs' => 'Important logs',
         'view_all' => 'View all',
@@ -154,6 +157,8 @@ return [
         'temp' => 'Temp',
         'hum' => 'Hum',
         'battery' => 'Battery',
+        'seq' => 'Seq',
+        'pdr' => 'PDR',
     ],
     'logs' => [
         'kicker' => 'Observability',

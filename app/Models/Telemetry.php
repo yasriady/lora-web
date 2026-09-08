@@ -22,6 +22,7 @@ class Telemetry extends Model
         'battery',
         'rssi',
         'snr',
+        'seq',
     ];
 
     protected function casts(): array
@@ -35,6 +36,7 @@ class Telemetry extends Model
             'battery' => 'decimal:3',
             'snr' => 'decimal:2',
             'rssi' => 'integer',
+            'seq' => 'integer',
         ];
     }
 
