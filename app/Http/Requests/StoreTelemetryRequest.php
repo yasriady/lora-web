@@ -9,6 +9,21 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StoreTelemetryRequest extends FormRequest
 {
+    /**
+     * Packet envelope fields that must not be stored as sensor metrics.
+     *
+     * @var list<string>
+     */
+    private const ENVELOPE_METRIC_KEYS = [
+        'seq',
+        'rssi',
+        'snr',
+        'battery',
+        'node_id',
+        'gateway_id',
+        'timestamp',
+    ];
+
     public function authorize(): bool
     {
         return true;
@@ -28,9 +43,31 @@ class StoreTelemetryRequest extends FormRequest
             }
         }
 
+        $seq = $this->normalizeSeq($this->input('seq') ?? $metrics['seq'] ?? null);
+
+        foreach (self::ENVELOPE_METRIC_KEYS as $key) {
+            unset($metrics[$key]);
+        }
+
         $this->merge([
             'metrics' => NodeMetricCatalog::normalizeNumericMetrics($metrics),
+            'seq' => $seq,
         ]);
+    }
+
+    private function normalizeSeq(mixed $value): ?int
+    {
+        if ($value === null || $value === '' || is_bool($value) || ! is_numeric($value)) {
+            return null;
+        }
+
+        $seq = (int) $value;
+
+        if ($seq < 1 || $seq > 4294967295) {
+            return null;
+        }
+
+        return $seq;
     }
 
     public function rules(): array

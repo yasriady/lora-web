@@ -560,7 +560,9 @@
             {
                 key: 'telemetry',
                 url: dashboardRoot.getAttribute('data-telemetry-url'),
-                interval: 7000,
+                randomInterval: true,
+                minInterval: 3000,
+                maxInterval: 7000,
                 apply: applyTelemetry,
             },
             {
@@ -594,8 +596,10 @@
             });
         }
 
-        const timers = [];
         let stopped = false;
+
+        const randomIntervalMs = (minMs = 3000, maxMs = 7000) =>
+            minMs + Math.floor(Math.random() * (maxMs - minMs + 1));
 
         const poll = async (widget) => {
             const requestUrl = widget.buildUrl ? widget.buildUrl() : widget.url;
@@ -614,7 +618,11 @@
 
                 if (response.status === 401 || response.status === 419) {
                     stopped = true;
-                    timers.forEach((id) => clearInterval(id));
+                    pollers.forEach((item) => {
+                        if (item.timerId) {
+                            clearTimeout(item.timerId);
+                        }
+                    });
                     return;
                 }
 
@@ -631,10 +639,24 @@
             }
         };
 
-        pollers.forEach((widget) => {
-            const timer = setInterval(() => poll(widget), widget.interval);
-            timers.push(timer);
-        });
+        const schedule = (widget) => {
+            const delay = widget.randomInterval
+                ? randomIntervalMs(widget.minInterval || 3000, widget.maxInterval || 7000)
+                : widget.interval;
+
+            if (widget.timerId) {
+                clearTimeout(widget.timerId);
+            }
+
+            widget.timerId = setTimeout(async () => {
+                await poll(widget);
+                if (!stopped) {
+                    schedule(widget);
+                }
+            }, delay);
+        };
+
+        pollers.forEach((widget) => schedule(widget));
 
         const chartWidget = pollers.find((widget) => widget.key === 'chart');
         if (chartWidget) {
@@ -662,6 +684,183 @@
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && !stopped) {
                 pollers.forEach((widget) => poll(widget));
+            }
+        });
+    }
+
+    const telemetryLiveRoot = document.getElementById('telemetryLive');
+    if (telemetryLiveRoot) {
+        const liveUrl = telemetryLiveRoot.getAttribute('data-live-url');
+        const panel = telemetryLiveRoot.querySelector('[data-widget="telemetry-live"]');
+        let inflight = false;
+        let stopped = false;
+        let timerId = null;
+
+        const randomIntervalMs = () => 3000 + Math.floor(Math.random() * 4001);
+
+        const setUpdating = (on) => {
+            panel?.classList.toggle('is-updating', on);
+        };
+
+        const applyTelemetryLive = (data) => {
+            const totalNode = telemetryLiveRoot.querySelector('[data-bind="total"]');
+            if (totalNode && data.total !== undefined) {
+                totalNode.textContent = Number(data.total || 0).toLocaleString();
+            }
+
+            const rowsLabel = telemetryLiveRoot.querySelector('[data-bind="rowsLabel"]');
+            if (rowsLabel && data.rowsLabel) {
+                rowsLabel.textContent = data.rowsLabel;
+            }
+
+            const pdrNode = telemetryLiveRoot.querySelector('[data-bind="pdr"]');
+            if (pdrNode) {
+                if (data.pdr && data.pdr.text) {
+                    pdrNode.textContent = `${data.pdr.label}: ${data.pdr.text}`;
+                    pdrNode.classList.remove('d-none');
+                } else {
+                    pdrNode.textContent = '';
+                    pdrNode.classList.add('d-none');
+                }
+            }
+
+            const footerWrap = telemetryLiveRoot.querySelector('[data-bind="footer-wrap"]');
+            const footerMeta = telemetryLiveRoot.querySelector('[data-bind="footer"]');
+            if (footerWrap && footerMeta) {
+                if (data.footer) {
+                    footerMeta.textContent = data.footer;
+                    footerWrap.classList.remove('d-none');
+                } else {
+                    footerMeta.textContent = '';
+                    footerWrap.classList.add('d-none');
+                }
+            }
+
+            const tbody = telemetryLiveRoot.querySelector('[data-bind-rows="telemetry"]');
+            if (!tbody) {
+                return;
+            }
+
+            tbody.replaceChildren();
+
+            if (data.empty || !Array.isArray(data.rows) || data.rows.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 8;
+                const wrap = document.createElement('div');
+                wrap.className = 'empty-state';
+                const title = document.createElement('h3');
+                title.textContent = data.emptyTitle || '';
+                const body = document.createElement('p');
+                body.className = 'muted mb-0';
+                body.textContent = data.emptyBody || '';
+                wrap.append(title, body);
+                td.appendChild(wrap);
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+                return;
+            }
+
+            data.rows.forEach((row) => {
+                const tr = document.createElement('tr');
+
+                const timeTd = document.createElement('td');
+                const timeMain = document.createElement('div');
+                timeMain.className = 'mono';
+                timeMain.textContent = row.timestamp || '—';
+                const timeRel = document.createElement('div');
+                timeRel.className = 'muted';
+                timeRel.style.fontSize = '0.75rem';
+                timeRel.textContent = row.relative || '';
+                timeTd.append(timeMain, timeRel);
+                tr.appendChild(timeTd);
+
+                ['gateway_id', 'node_id', 'seq'].forEach((key) => {
+                    const td = document.createElement('td');
+                    td.className = 'mono';
+                    td.textContent = row[key] || '—';
+                    tr.appendChild(td);
+                });
+
+                const metricsTd = document.createElement('td');
+                const wrap = document.createElement('div');
+                wrap.className = 'd-flex flex-wrap gap-1';
+                if (Array.isArray(row.metrics) && row.metrics.length > 0) {
+                    row.metrics.forEach((metric) => {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge-pill badge-info mono';
+                        badge.textContent = `${metric.key}: ${metric.value}`;
+                        wrap.appendChild(badge);
+                    });
+                } else {
+                    const muted = document.createElement('span');
+                    muted.className = 'muted';
+                    muted.textContent = '—';
+                    wrap.appendChild(muted);
+                }
+                metricsTd.appendChild(wrap);
+                tr.appendChild(metricsTd);
+
+                ['battery', 'rssi', 'snr'].forEach((key) => {
+                    const td = document.createElement('td');
+                    td.className = 'mono';
+                    td.textContent = row[key] || '—';
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+        };
+
+        const poll = async () => {
+            if (stopped || document.hidden || !liveUrl || inflight) {
+                return;
+            }
+
+            inflight = true;
+            setUpdating(true);
+
+            try {
+                const response = await fetch(liveUrl, {
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                });
+
+                if (response.status === 401 || response.status === 419) {
+                    stopped = true;
+                    if (timerId) {
+                        clearTimeout(timerId);
+                    }
+                    return;
+                }
+
+                if (!response.ok) {
+                    return;
+                }
+
+                applyTelemetryLive(await response.json());
+            } catch (error) {
+                console.error('Gagal refresh telemetry live', error);
+            } finally {
+                inflight = false;
+                setUpdating(false);
+            }
+        };
+
+        const schedule = () => {
+            timerId = setTimeout(async () => {
+                await poll();
+                if (!stopped) {
+                    schedule();
+                }
+            }, randomIntervalMs());
+        };
+
+        schedule();
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && !stopped) {
+                poll();
             }
         });
     }

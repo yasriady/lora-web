@@ -33,13 +33,16 @@ class TelemetryIngestionService
         }
 
         $metrics = NodeMetricCatalog::normalizeNumericMetrics($payload['metrics'] ?? []);
+        $seq = $this->normalizeSeq($payload['seq'] ?? $metrics['seq'] ?? null);
+        unset($metrics['seq']);
+
         if ($metrics === []) {
             throw new HttpException(400, 'Telemetry metrics must contain at least one numeric value.');
         }
 
         $schema = $node->resolvedMetricsSchema();
 
-        DB::transaction(function () use ($gateway, $node, $payload, $metrics, $schema): void {
+        DB::transaction(function () use ($gateway, $node, $payload, $metrics, $schema, $seq): void {
             $telemetry = Telemetry::query()->create([
                 'gateway_id' => $payload['gateway_id'],
                 'node_id' => $payload['node_id'],
@@ -50,7 +53,7 @@ class TelemetryIngestionService
                 'battery' => $payload['battery'] ?? null,
                 'rssi' => $payload['rssi'] ?? null,
                 'snr' => $payload['snr'] ?? null,
-                'seq' => $payload['seq'] ?? null,
+                'seq' => $seq,
             ]);
 
             $readingRows = [];
@@ -76,8 +79,25 @@ class TelemetryIngestionService
                 'gateway_id' => $gateway->gateway_id,
                 'level' => 'info',
                 'event' => 'telemetry_received',
-                'message' => 'Telemetry received from node '.$node->node_id.' ('.implode(', ', array_keys($metrics)).').',
+                'message' => 'Telemetry received from node '.$node->node_id
+                    .($seq === null ? '' : ' seq='.$seq)
+                    .' ('.implode(', ', array_keys($metrics)).').',
             ]);
         });
+    }
+
+    private function normalizeSeq(mixed $value): ?int
+    {
+        if ($value === null || $value === '' || is_bool($value) || ! is_numeric($value)) {
+            return null;
+        }
+
+        $seq = (int) $value;
+
+        if ($seq < 1 || $seq > 4294967295) {
+            return null;
+        }
+
+        return $seq;
     }
 }

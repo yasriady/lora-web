@@ -63,7 +63,7 @@
 // IDENTITAS NODE
 // =====================================================
 
-#define NODE_ID "NODE04"
+#define NODE_ID "Miniboard"
 
 
 // =====================================================
@@ -128,7 +128,7 @@ uint32_t txSeq = 0;
 
 // Ubah menjadi true jika ingin membaca battery
 
-#define ENABLE_BATTERY_ADC false
+#define ENABLE_BATTERY_ADC true
 
 
 #if ENABLE_BATTERY_ADC

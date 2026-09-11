@@ -10,6 +10,10 @@
 @endsection
 
 @section('content')
+<div
+    id="telemetryLive"
+    data-live-url="{{ route('telemetry.index', request()->query()) }}"
+>
 <form class="toolbar panel panel-body" method="GET">
     <input class="form-control" name="search" value="{{ request('search') }}" placeholder="{{ __('ui.telemetry.search_placeholder') }}">
     <select class="form-select" name="gateway_id" style="max-width:200px">
@@ -36,17 +40,24 @@
     @endif
 </form>
 
-<section class="panel">
+<section class="panel" data-widget="telemetry-live">
     <div class="panel-header">
         <h2 class="panel-title">{{ __('ui.telemetry.history') }}</h2>
-        <span class="muted">{{ $telemetry->total() }} {{ __('ui.rows') }}</span>
-        @if ($pdr)
-            <span class="badge-pill badge-info mono">
+        <span class="muted">
+            <span data-bind="total">{{ $telemetry->total() }}</span>
+            <span data-bind="rowsLabel">{{ __('ui.rows') }}</span>
+        </span>
+        <span
+            class="badge-pill badge-info mono{{ $pdr ? '' : ' d-none' }}"
+            data-bind="pdr"
+        >
+            @if ($pdr)
                 {{ __('ui.telemetry.pdr') }}:
                 {{ number_format($pdr['ratio'] * 100, 1) }}%
                 ({{ number_format($pdr['received']) }}/{{ number_format($pdr['expected']) }})
-            </span>
-        @endif
+            @endif
+        </span>
+        <span class="live-badge">{{ __('ui.dashboard.live') }}</span>
     </div>
     <div class="table-responsive">
         <table class="data-table">
@@ -62,7 +73,7 @@
                     <th>SNR</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody data-bind-rows="telemetry">
                 @forelse ($telemetry as $item)
                     <tr>
                         <td>
@@ -98,6 +109,22 @@
             </tbody>
         </table>
     </div>
-    @include('partials.table-footer', ['paginator' => $telemetry])
+    <div class="table-footer{{ $telemetry->total() > 0 ? '' : ' d-none' }}" data-bind="footer-wrap">
+        <div class="table-footer-meta" data-bind="footer">
+            @if ($telemetry->total() > 0)
+                {{ __('ui.pagination.showing', [
+                    'from' => $telemetry->firstItem(),
+                    'to' => $telemetry->lastItem(),
+                    'total' => number_format($telemetry->total()),
+                ]) }}
+            @endif
+        </div>
+        @if ($telemetry->hasPages())
+            <div class="table-footer-links">
+                {{ $telemetry->onEachSide(1)->links() }}
+            </div>
+        @endif
+    </div>
 </section>
+</div>
 @endsection

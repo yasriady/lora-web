@@ -393,7 +393,7 @@ class DashboardController extends Controller
         ];
     }
 
-    public function telemetry(Request $request): View
+    public function telemetry(Request $request): View|JsonResponse
     {
         $query = Telemetry::query()->latest('timestamp');
 
@@ -419,6 +419,49 @@ class DashboardController extends Controller
 
         $pdr = $this->packetDeliveryRatioFor($query);
         $telemetry = $query->paginate(15)->withQueryString();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'total' => $telemetry->total(),
+                'rowsLabel' => __('ui.rows'),
+                'empty' => $telemetry->isEmpty(),
+                'emptyTitle' => __('ui.telemetry.empty_title'),
+                'emptyBody' => __('ui.telemetry.empty_body'),
+                'pdr' => $pdr === null ? null : [
+                    'label' => __('ui.telemetry.pdr'),
+                    'text' => number_format($pdr['ratio'] * 100, 1).'%'
+                        .' ('.number_format($pdr['received']).'/'.number_format($pdr['expected']).')',
+                ],
+                'footer' => $telemetry->total() > 0
+                    ? __('ui.pagination.showing', [
+                        'from' => $telemetry->firstItem(),
+                        'to' => $telemetry->lastItem(),
+                        'total' => number_format($telemetry->total()),
+                    ])
+                    : null,
+                'rows' => $telemetry->getCollection()->map(static function (Telemetry $item): array {
+                    $metrics = [];
+                    foreach ($item->displayMetrics() as $key => $value) {
+                        $metrics[] = [
+                            'key' => (string) $key,
+                            'value' => is_scalar($value) ? (string) $value : json_encode($value),
+                        ];
+                    }
+
+                    return [
+                        'timestamp' => optional($item->timestamp)?->toDateTimeString() ?? '—',
+                        'relative' => $item->timestamp?->diffForHumans() ?? '',
+                        'gateway_id' => (string) $item->gateway_id,
+                        'node_id' => (string) $item->node_id,
+                        'seq' => $item->seq === null ? '—' : (string) $item->seq,
+                        'metrics' => $metrics,
+                        'battery' => $item->battery === null ? '—' : (string) $item->battery,
+                        'rssi' => $item->rssi === null ? '—' : (string) $item->rssi,
+                        'snr' => $item->snr === null ? '—' : (string) $item->snr,
+                    ];
+                })->values(),
+            ]);
+        }
 
         $metricKeys = TelemetryReading::query()
             ->select('metric_key')
