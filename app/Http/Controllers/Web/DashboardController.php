@@ -317,29 +317,34 @@ class DashboardController extends Controller
      */
     private function packetDeliveryRatioFor($query): ?array
     {
-        $packets = (clone $query)
+        $rows = (clone $query)
             ->reorder()
             ->whereNotNull('seq')
             ->orderBy('gateway_id')
             ->orderBy('node_id')
             ->orderBy('timestamp')
-            ->get(['gateway_id', 'node_id', 'seq']);
-
-        if ($packets->isEmpty()) {
-            return null;
-        }
+            ->select(['gateway_id', 'node_id', 'seq'])
+            ->toBase()
+            ->cursor();
 
         $received = 0;
         $expected = 0;
+        $currentKey = null;
+        $sequences = [];
 
-        foreach ($packets->groupBy(fn (Telemetry $row): string => $row->gateway_id.'|'.$row->node_id) as $group) {
-            $pdr = PacketDeliveryRatio::fromSequences($group->pluck('seq'));
-            if ($pdr === null) {
-                continue;
+        foreach ($rows as $row) {
+            $key = $row->gateway_id.'|'.$row->node_id;
+            if ($currentKey !== null && $key !== $currentKey) {
+                $this->addGroupPdr($sequences, $received, $expected);
+                $sequences = [];
             }
 
-            $received += $pdr['received'];
-            $expected += $pdr['expected'];
+            $currentKey = $key;
+            $sequences[] = $row->seq;
+        }
+
+        if ($currentKey !== null) {
+            $this->addGroupPdr($sequences, $received, $expected);
         }
 
         if ($expected <= 0) {
@@ -352,6 +357,20 @@ class DashboardController extends Controller
             'lost' => max(0, $expected - $received),
             'ratio' => $received / $expected,
         ];
+    }
+
+    /**
+     * @param  list<int|string|null>  $sequences
+     */
+    private function addGroupPdr(array $sequences, int &$received, int &$expected): void
+    {
+        $pdr = PacketDeliveryRatio::fromSequences($sequences);
+        if ($pdr === null) {
+            return;
+        }
+
+        $received += $pdr['received'];
+        $expected += $pdr['expected'];
     }
 
     /**
